@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CreateGame</class>
+ <widget class="QWidget" name="CreateGame">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>511</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QWidget" name="widget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>511</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(147,181,207);
+border-radius: 10px;</string>
+   </property>
+   <widget class="QLabel" name="label_min">
+    <property name="geometry">
+     <rect>
+      <x>700</x>
+      <y>0</y>
+      <width>41</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Adobe 黑体 Std R</family>
+      <pointsize>12</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLabel{
+   color:rgb(134, 134, 134);
+	font: 12pt &quot;Adobe 黑体 Std R&quot;;
+}
+QLabel:hover{
+   background-color:rgb(58,149,222);
+   color:white;
+
+}</string>
+    </property>
+    <property name="text">
+     <string>一</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_close">
+    <property name="geometry">
+     <rect>
+      <x>750</x>
+      <y>0</y>
+      <width>41</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Adobe 黑体 Std R</family>
+      <pointsize>12</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLabel{
+   color:rgb(134, 134, 134);
+	font: 12pt &quot;Adobe 黑体 Std R&quot;;
+}
+QLabel:hover{
+  background-color:rgb(212, 64, 39);
+  color:rgb(255, 255, 255);
+}</string>
+    </property>
+    <property name="text">
+     <string>X</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QWidget" name="widget_2" native="true">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>60</y>
+      <width>421</width>
+      <height>431</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(255, 255, 255);</string>
+    </property>
+    <widget class="MyTableWidget" name="tableWidget">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>10</y>
+       <width>415</width>
+       <height>415</height>
+      </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>400</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QTableWidget{background-color:rgb(255, 255, 255)}
+QTableWidget:hover{rgb(170, 85, 255);}</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="widget_3" native="true">
+    <property name="geometry">
+     <rect>
+      <x>479</x>
+      <y>59</y>
+      <width>291</width>
+      <height>431</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(255, 255, 255);</string>
+    </property>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>20</y>
+       <width>251</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">
+font: 25 16pt &quot;微软雅黑 Light&quot;;
+color: rgb(85, 170, 255);</string>
+     </property>
+     <property name="text">
+      <string>选择飞机朝向</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_undo">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>380</y>
+       <width>111</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+font: 25 12pt &quot;微软雅黑 Light&quot;;
+  background-color:rgb(85, 170, 255);
+color:white;
+border-radius: 4px;
+}
+</string>
+     </property>
+     <property name="text">
+      <string>撤销</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_send">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>380</y>
+       <width>101</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+font: 25 12pt &quot;微软雅黑 Light&quot;;
+  background-color:rgb(85, 170, 255);
+color:white;
+border-radius: 4px;
+}</string>
+     </property>
+     <property name="text">
+      <string>发送</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="gridLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>190</y>
+       <width>241</width>
+       <height>161</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="styleSheet">
+         <string notr="true">font: 25 16pt &quot;微软雅黑 Light&quot;;</string>
+        </property>
+        <property name="text">
+         <string>1#</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="styleSheet">
+         <string notr="true">font: 25 16pt &quot;微软雅黑 Light&quot;;</string>
+        </property>
+        <property name="text">
+         <string>3#</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLineEdit" name="lineEdit_1">
+        <property name="styleSheet">
+         <string notr="true">QLineEdit{
+
+background:rgb(226,225,228);
+border: 1px solid rgb(134, 134, 134);
+border-radius:2px;
+	color: rgb(134, 134, 134)
+}</string>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLineEdit" name="lineEdit_2">
+        <property name="styleSheet">
+         <string notr="true">QLineEdit{
+
+background:rgb(226,225,228);
+border: 1px solid rgb(134, 134, 134);
+border-radius:2px;
+	color: rgb(134, 134, 134)
+}</string>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="styleSheet">
+         <string notr="true">font: 25 16pt &quot;微软雅黑 Light&quot;;</string>
+        </property>
+        <property name="text">
+         <string>2#</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QLineEdit" name="lineEdit_3">
+        <property name="styleSheet">
+         <string notr="true">QLineEdit{
+
+background:rgb(226,225,228);
+border: 1px solid rgb(134, 134, 134);
+border-radius:2px;
+	color: rgb(134, 134, 134)
+}</string>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QWidget" name="gridLayoutWidget_2">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>60</y>
+       <width>241</width>
+       <height>121</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="1" column="0">
+       <widget class="QRadioButton" name="radioButton_left">
+        <property name="styleSheet">
+         <string notr="true">color: rgb(85, 170, 255);
+font: 25 9pt &quot;微软雅黑 Light&quot;;</string>
+        </property>
+        <property name="text">
+         <string>向左←</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QRadioButton" name="radioButton_up">
+        <property name="styleSheet">
+         <string notr="true">color: rgb(85, 170, 255);
+font: 25 9pt &quot;微软雅黑 Light&quot;;</string>
+        </property>
+        <property name="text">
+         <string>向上↑</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QRadioButton" name="radioButton_down">
+        <property name="styleSheet">
+         <string notr="true">color: rgb(85, 170, 255);
+font: 25 9pt &quot;微软雅黑 Light&quot;;</string>
+        </property>
+        <property name="text">
+         <string>向下↓</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QRadioButton" name="radioButton_right">
+        <property name="styleSheet">
+         <string notr="true">color: rgb(85, 170, 255);
+font: 25 9pt &quot;微软雅黑 Light&quot;;</string>
+        </property>
+        <property name="text">
+         <string>向右→</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MyTableWidget</class>
+   <extends>QTableWidget</extends>
+   <header location="global">mytablewidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
