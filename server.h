@@ -17,12 +17,6 @@ const bool flag_block = true;
 
 using namespace std ;
 
-namespace logt
-{
-    const unsigned char userDisconn = 0x01 ;
-
-};
-
 
 
 class Server 

@@ -182,20 +182,24 @@ struct Packet{
 
 };
 
-//  以下是几种消息报文的格式 可以将msg强制类型转换 如 fileData * datap = (fileData *) msg ;  
-
 struct ClientInfo{
     int cfd;
     string name;
-    bool wake ;
+    unsigned char status ;
+    int gameId ; 
     sockaddr_in sockaddr ; 
-    
+    ChessBoard *my_board , *oppo_board ; 
+
+
     vector<Packet> offlinePacks ;
     ClientInfo(string _name , int _cfd = -1){
         name = _name ;
         cfd = _cfd;
-        wake = false ;
+        gameId = -1;
+        my_board = oppo_board = NULL ;
+        status = cstate::offline ;
         offlinePacks.clear();
+
     }
 
 };
@@ -217,7 +221,31 @@ struct loginAction
     }
 };
 
+struct gameInfo {
+    
+    int gameId ; 
+    bool ready ; 
 
+    // turn == (id == index1)
+    bool turn ; 
+    // 1 为挑战者  2 为被挑战者 为clientinfo的下标
+    int index1 , index2 ;
+
+    ChessBoard *board1 , *board2 ;
+
+    gameInfo(int id1 , int id2 , int gid){
+        index1 = id1 ; 
+        index2 = id2 ;
+        gameId = gid ;
+        ready = false ;
+        turn = false;
+        board1 = board2 = NULL ;
+    }
+
+};
+
+
+//  以下是几种消息报文的格式 可以将msg强制类型转换 如 fileData * datap = (fileData *) msg ;  
 
 int socketSend (int cfd , const Packet & packet);
 

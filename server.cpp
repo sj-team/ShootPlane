@@ -8,12 +8,7 @@ bool debug = false;
 
 /* TODO
 
-1. 日志
-
-2. 追加数据库
-
-3. 建立 cfdMap ， 并且可以自动关闭连接 
-
+1. 
 
 */
 
