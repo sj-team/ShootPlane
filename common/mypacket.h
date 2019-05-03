@@ -54,6 +54,15 @@ namespace cstate
 	const unsigned char resSend = 0X72;
 	const unsigned char resConf = 0X81 ;
 	const unsigned char resFileHead =0x73;
+ 
+	const unsigned char connect = 0x31;
+	const unsigned char resConnect = 0x41;
+	const unsigned char askGame = 0x51;
+	const unsigned char init = 0x52 ;
+
+	const unsigned char play = 0x32 ;
+	const unsigned char resPlay = 0x42;
+
  };
 
 namespace sbt
@@ -89,6 +98,15 @@ namespace sbt
 	const unsigned char tellOffline = 0x02 ;
 	const unsigned char offlineSnd = 0x07 ;
 	const unsigned char packetok = 0x08 ;
+
+	// mt::connect || mt::resConnect || mt::askInit
+ 	//const unsigned char request 
+	const unsigned char accept = 0x02 ;
+	const unsigned char deny = 0x03 ;
+	const unsigned char locate = 0x01;
+	const unsigned char wait = 0x00 ;
+	const unsigned char turn = 0x02 ;
+	const unsigned char unmask = 0x02;
 
 };
 
@@ -223,9 +241,10 @@ struct loginAction
 
 struct gameInfo {
     
-    int gameId ; 
+//    int gameId ; 
     bool ready ; 
 
+	// turn is true , then index1's turn 
     // turn == (id == index1)
     bool turn ; 
     // 1 为挑战者  2 为被挑战者 为clientinfo的下标
@@ -233,10 +252,10 @@ struct gameInfo {
 
     ChessBoard *board1 , *board2 ;
 
-    gameInfo(int id1 , int id2 , int gid){
+    gameInfo(int id1 , int id2 ){
         index1 = id1 ; 
         index2 = id2 ;
-        gameId = gid ;
+ //       gameId = gid ;
         ready = false ;
         turn = false;
         board1 = board2 = NULL ;

@@ -18,6 +18,7 @@ Server::Server()
     loginList.clear();
     nameIndex.clear();
     cfdIndex.clear();
+    gameList.clear();
 
     dataBase = new SERVER_MYSQL();
 
@@ -121,6 +122,44 @@ void Server::removeLogin (vector<loginAction>::iterator i)
     close_cfd(i->cfd);
     loginList.erase(i);
     cout <<"erase ok !\n";
+}
+
+void Server::removeGame( int gid )
+{
+    auto iter = gameList.begin() + gid ;
+    clientList[iter->index1].gameId = -1;
+    clientList[iter->index2].gameId = -1 ;
+    if (iter->board1)
+        delete iter->board1 ;
+    if (iter->board2)
+        delete iter->board2 ;
+    gameList.erase(iter);
+    
+}
+
+void Server::gameTurn(int gid )
+{
+    auto iter = gameList.begin() + gid ; 
+
+    if ( iter->turn){
+        sndResponse(clientList[iter->index1].cfd , mt::askGame , sbt::turn);
+        sndResponse(clientList[iter->index2].cfd , mt::askGame , sbt::wait);
+       // send
+    }
+    else{
+        sndResponse(clientList[iter->index1].cfd , mt::askGame , sbt::wait);
+        sndResponse(clientList[iter->index2].cfd , mt::askGame , sbt::turn);
+    }
+
+    //if (turn == (id == index1))
+}
+
+void Server::endGame( int gid , bool turn)
+{
+
+    // TODO  : tell result ;
+
+    removeGame(gid);
 }
 
 void Server::user_online ( int cfdindex )
@@ -368,7 +407,7 @@ void Server::solveLogin(int index )
 
 }
 
-void Server::solveMsg(int index )
+void Server::solveMsg(const int index )
 {
 
     Packet srcPacket , desPacket ;
@@ -516,6 +555,111 @@ void Server::solveMsg(int index )
         }
     }
 
+    // solve start a game 
+    else if (srcPacket.isMainType(mt::connect)){
+        
+        if(srcPacket.isSubType(sbt::request)){
+            string oppo_name (srcPacket.msg);
+        
+
+            int gid = gameList.size();
+
+
+            if(nameIndex.find(oppo_name)==nameIndex.end())
+            {
+                cout <<"name not exit "<<endl;
+                sndResponse(clientList[index].cfd , mt::resSend , sbt::idNotExit , oppo_name.c_str() );
+                return ;
+            }
+
+            int oppo_index = nameIndex[oppo_name];
+            gameList.push_back(gameInfo(index , oppo_index ));
+            clientList[index].gameId = gid ;
+            clientList[oppo_index].gameId = gid ; 
+
+            
+            sndResponse(clientList[oppo_index].cfd,mt::connect,sbt::request,clientList[index].name.c_str());
+        }
+
+        else if (srcPacket.isSubType(sbt::success)){
+            
+            int gid = clientList[index].gameId ;
+            
+            int cfd1 = clientList[gameList[gid].index1].cfd ;
+            int cfd2 = clientList[gameList[gid].index2].cfd;
+            sndResponse(cfd1, mt::askGame, sbt::locate);
+            sndResponse(cfd2, mt::askGame, sbt::locate);
+            
+        }
+                        
+    }
+
+    else if (srcPacket.isMainType(mt::resConnect)){
+        string oppo_name (srcPacket.msg);
+        int oppo_index = nameIndex[oppo_name];
+        if (srcPacket.isSubType(sbt::accept)){
+            
+            sndResponse(clientList[oppo_index].cfd, mt::resConnect, sbt::accept);
+        }
+        else if (srcPacket.isSubType(sbt::deny)){
+
+            removeGame(clientList[index].gameId);
+            sndResponse(clientList[oppo_index].cfd, mt::resConnect, sbt::accept);
+        }
+    }
+
+    // TODO
+    else if (srcPacket.isMainType(mt::init)){
+        if (srcPacket.isSubType(sbt::locate)){
+            
+            int gid = clientList[index].gameId;
+            
+        
+            ChessBoard * board ; 
+            if (index == gameList[gid].index1){
+                board = gameList[gid].board1 = new ChessBoard(index );
+            }
+            else if (index == gameList[gid].index2){
+                board = gameList[gid].board2 = new ChessBoard(index);
+            }
+            // TODO : new board 
+            bool flag = true ; 
+            
+            if (flag = false){
+
+            }
+            // 成功设了3架飞机
+            if(gameList[gid].board1 && gameList[gid].board2){
+                gameList[gid].ready = true ;
+                gameList[gid].turn = true ; 
+
+                gameTurn(gid);
+            }
+        }
+    
+    }
+
+    // TODO
+    else if (srcPacket.isMainType(mt::play)){
+
+        bool flag = true ;
+        int gid = clientList[index].gameId ; 
+        if (srcPacket.isSubType(sbt::unmask)){
+
+        }
+        else if (srcPacket.isSubType(sbt::locate)){
+
+        }
+
+        if (flag){
+
+            gameList[gid].turn = !gameList[gid].turn;
+            gameTurn(gid);
+        }
+
+    }
+
+
     //else if(srcPacket.isMainType(mt::sndTxt)||srcPacket.isMainType(mt::sndFile)||srcPacket.isMainType(mt::sndFileHead)||srcPacket.isMainType(mt::resFileHead))
     else
     {
@@ -528,6 +672,7 @@ void Server::solveMsg(int index )
         
 
     }
+
 
 /*     else 
     {

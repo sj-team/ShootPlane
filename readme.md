@@ -120,14 +120,22 @@ Grammar has not been verified. -->
 接收对战（被挑战者发）|0x41(resConnect)|0x02(accept)
 拒绝对战（被挑战者发）|0x41(resConnect)|0x03(deny)
 对战成功（对战成功后，挑战者告诉服务器收到）|0x31(connect)|0x01(success)
-
+请求放置(server向两位玩家发送，要求放置飞机)|0x51(askGame)|0x01(locate)
+请求猜棋(server向玩家发送，要求猜棋子)|0x51(askGame)|0x02(turn)
+请求猜棋(server向玩家发送，要求猜棋子)|0x51(askGame)|0x00(wait)
+放置信息(client放置飞机)|0x52(init)|0x01(locate)
 </br>
 
 #### 报文信息(请求对战,接收对战,拒绝对战)
 
 * 32位用户名
 
-#### 报文信息(对战成功)
+#### 报文信息(请求对战,接收对战,拒绝对战)
+
+* 3个双坐标 ， 每个坐标为 （unsigned char y ， unsigned char x）;
+
+
+#### 报文信息(对战成功，请求放置)
 
 * 无内容，只有报文头
 
@@ -136,8 +144,8 @@ Grammar has not been verified. -->
 ---|:--:|---:
 猜点|0x32(play)|0x01(unmask)
 猜飞机位置|0x32(play)|0x02(locate)
-反馈猜点（server反馈）|0x42(resPlay)|0x01(unmask)
-反馈猜位置（server反馈）|0x42(resPlay)|0x02(locate)
+反馈猜点（server反馈）|0x42(resPlay)|0x02(unmask)
+反馈猜位置（server反馈）|0x42(resPlay)|0x01(locate)
 反馈输（server反馈）|0x42(resPlay)|0x03(win)
 反馈赢（server反馈）|0x42(resPlay)|0x04(lose)
 

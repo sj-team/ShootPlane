@@ -32,6 +32,8 @@ private :
 
     vector<loginAction> loginList;
 
+    vector<gameInfo> gameList ;
+
     // name 到 clientList 下标的map
     map<string, int> nameIndex;
     
@@ -75,7 +77,7 @@ private :
 
     int alterFileDataPack(Packet &desPack, Packet &srcPack, const char *srcId);
 
-    void solveMsg(int index );
+    void solveMsg(const int index );
 
     int sndOneMsg(int index ,const char * rcvName , const Packet & packet );
 
@@ -84,6 +86,13 @@ private :
     void user_offline( int index );
 
     void user_leave( int index );
+
+    void removeGame( int gid );
+
+    void endGame( int gid , bool turn);
+
+    // tell user wait or play
+    void gameTurn(int gid );
 
   public:
 
