@@ -37,6 +37,7 @@ namespace cstate
 {
 	const char online = '1' ;
 	const char offline = '0' ;
+	const char playing = '2';
 };
 
  namespace mt
@@ -86,6 +87,7 @@ namespace sbt
 
 	const unsigned char idNotExit = 0xfe;
 	const unsigned char idOffline = 0xfd;
+	const unsigned char idPlaying = 0xfc;
 
 	const unsigned char winTheme = 0x01;
 	const unsigned char friList = 0x02 ;
@@ -95,7 +97,11 @@ namespace sbt
 	const unsigned char hisMsg = 0x06 ;
 
 	const unsigned char tellOnline = 0x01 ;
-	const unsigned char tellOffline = 0x02 ;
+	const unsigned char tellOffline = 0x00 ;
+	const unsigned char tellPlaying = 0x02 ;
+	const unsigned char tellEnd = 0x03 ;
+
+
 	const unsigned char offlineSnd = 0x07 ;
 	const unsigned char packetok = 0x08 ;
 
@@ -153,6 +159,15 @@ struct changePwdData {
 	char newPasswd [MAXPASSWDLEN];
 };
 
+// locate 
+struct locateData {
+	unsigned char x1 ;
+	unsigned char y1 ;
+	unsigned char x2 ;
+	unsigned char y2 ;
+	unsigned char x3 ;
+	unsigned char y3 ;
+};
 
 
 int fillPacketHeader(packetHeader & header , unsigned char mainType , unsigned char resType , unsigned short msgLen);

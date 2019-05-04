@@ -9,7 +9,7 @@ bool debug = false;
 /* TODO
 
 1. 
-
+is
 */
 
 Server::Server()
@@ -127,12 +127,20 @@ void Server::removeLogin (vector<loginAction>::iterator i)
 void Server::removeGame( int gid )
 {
     auto iter = gameList.begin() + gid ;
+
+    if(! iter->ready ){
+        sndResponse(clientList[iter->index1].cfd,mt::resConnect,sbt::deny);
+        sndResponse(clientList[iter->index2].cfd,mt::connect,sbt::deny);
+    }
+
     clientList[iter->index1].gameId = -1;
     clientList[iter->index2].gameId = -1 ;
     if (iter->board1)
         delete iter->board1 ;
     if (iter->board2)
         delete iter->board2 ;
+    clientList[iter->index1].my_board = clientList[iter->index1].oppo_board = NULL ;
+    clientList[iter->index2].my_board = clientList[iter->index2].oppo_board = NULL ;
     gameList.erase(iter);
     
 }
@@ -154,6 +162,9 @@ void Server::gameTurn(int gid )
     //if (turn == (id == index1))
 }
 
+
+// judge whether game is over or not 
+// if end game , send msg to palyer 
 void Server::endGame( int gid , bool turn)
 {
 
@@ -173,6 +184,7 @@ void Server::user_online ( int cfdindex )
 
     clientList[index].cfd = cfd ;
     clientList[index].sockaddr = i->sockaddr;
+    clientList[index].status = cstate::online;
     tell_clinet_onoffline (index , true);
     string name = clientList[index].name ;
     loginList.erase(i);
@@ -218,7 +230,6 @@ void Server::user_online ( int cfdindex )
     mylog._writeLogin("set-themecolor",clientList[index].sockaddr,clientList[index].name.c_str());
 
     if(color == -1 )
-        // TODO  default color 
         color = 10 ; 
     // send color packet 
     if(1)
@@ -278,7 +289,12 @@ void Server::user_leave( int index )
 
 void Server::user_offline( int index )
 {
+    if (clientList[index].gameId !=-1)
+        removeGame(clientList[index].gameId);
+
+    clientList[index].status = cstate::offline;
     tell_clinet_onoffline(index , false);
+
     close_cfd (clientList[index].cfd);
     clientList[index].cfd = -1 ;
 
@@ -573,6 +589,18 @@ void Server::solveMsg(const int index )
             }
 
             int oppo_index = nameIndex[oppo_name];
+            
+            if(clientList[oppo_index].status == cstate::playing){
+                cout <<"can't  start a game | playing "<<endl;
+                sndResponse(clientList[index].cfd,mt::resSend,sbt::idPlaying);
+                return ;
+            }
+            if (clientList[oppo_index].status == cstate::offline){
+                cout <<"can't  start a game | offline "<<endl;
+                sndResponse(clientList[index].cfd,mt::resSend,sbt::idOffline);
+                return ;
+            }
+            
             gameList.push_back(gameInfo(index , oppo_index ));
             clientList[index].gameId = gid ;
             clientList[oppo_index].gameId = gid ; 
@@ -581,12 +609,26 @@ void Server::solveMsg(const int index )
             sndResponse(clientList[oppo_index].cfd,mt::connect,sbt::request,clientList[index].name.c_str());
         }
 
+        else if (srcPacket.isSubType(sbt::deny)){
+            int gid = clientList[index].gameId;
+            int oppo_index = gameList[gid].index2 ;
+            removeGame(gid);
+
+            sndResponse(clientList[oppo_index].cfd, mt::resConnect, sbt::deny);            
+        }
         else if (srcPacket.isSubType(sbt::success)){
             
             int gid = clientList[index].gameId ;
             
             int cfd1 = clientList[gameList[gid].index1].cfd ;
             int cfd2 = clientList[gameList[gid].index2].cfd;
+
+            auto iter = gameList.begin() + gid ;
+            iter ->board1 = new ChessBoard(iter->index1);
+            iter ->board2 = new ChessBoard(iter->index2);
+            clientList[iter->index1].my_board = clientList[iter->index2].oppo_board= iter->board1 ;
+            clientList[iter->index1].oppo_board = clientList[iter->index2].my_board= iter->board2;
+
             sndResponse(cfd1, mt::askGame, sbt::locate);
             sndResponse(cfd2, mt::askGame, sbt::locate);
             
@@ -604,7 +646,7 @@ void Server::solveMsg(const int index )
         else if (srcPacket.isSubType(sbt::deny)){
 
             removeGame(clientList[index].gameId);
-            sndResponse(clientList[oppo_index].cfd, mt::resConnect, sbt::accept);
+            sndResponse(clientList[oppo_index].cfd, mt::resConnect, sbt::deny);
         }
     }
 
@@ -624,12 +666,15 @@ void Server::solveMsg(const int index )
             }
             // TODO : new board 
             bool flag = true ; 
-            
-            if (flag = false){
 
+            if (flag = false){
+                
             }
+
+
+
             // 成功设了3架飞机
-            if(gameList[gid].board1 && gameList[gid].board2){
+            if(gameList[gid].board1->getnum() == g_plane_num && gameList[gid].board2->getnum()== g_plane_num){
                 gameList[gid].ready = true ;
                 gameList[gid].turn = true ; 
 
@@ -904,7 +949,6 @@ int Server::alterFileHeaderPack(Packet & desPack , Packet & srcPack , const char
 	memcpy( &desPack , & srcPack , sizeof(desPack));
 	
 
-    //TODO
 	fileHeader * fhp = (fileHeader *) desPack.msg;
 	strcpy(fhp->friName , srcId );
 
@@ -915,8 +959,6 @@ int Server::alterFileDataPack (Packet & desPack , Packet & srcPack , const char 
 {
 	memcpy( &desPack , & srcPack , sizeof(desPack));
 	
-
-    //TODO
 	fileData * fdp = (fileData *) desPack.msg;
 	strcpy(fdp->friName , srcId );
 
