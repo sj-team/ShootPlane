@@ -135,12 +135,15 @@ void Server::removeGame( int gid )
 
     clientList[iter->index1].gameId = -1;
     clientList[iter->index2].gameId = -1 ;
+    clientList[iter->index1].status = clientList[iter->index2].status = cstate::online;
     if (iter->board1)
         delete iter->board1 ;
     if (iter->board2)
         delete iter->board2 ;
     clientList[iter->index1].my_board = clientList[iter->index1].oppo_board = NULL ;
     clientList[iter->index2].my_board = clientList[iter->index2].oppo_board = NULL ;
+    
+
     gameList.erase(iter);
     
 }
@@ -604,7 +607,7 @@ void Server::solveMsg(const int index )
             gameList.push_back(gameInfo(index , oppo_index ));
             clientList[index].gameId = gid ;
             clientList[oppo_index].gameId = gid ; 
-
+            clientList[index].status = clientList[oppo_index].status = cstate::playing;
             
             sndResponse(clientList[oppo_index].cfd,mt::connect,sbt::request,clientList[index].name.c_str());
         }
@@ -670,9 +673,17 @@ void Server::solveMsg(const int index )
             if (flag = false){
                 
             }
+            
+            locateData * msg = (locateData *) srcPacket.msg;
 
-
-
+            // if set failed 
+            if(!clientList[index].my_board->initLocate(Pt(msg->p1_x1,msg->p1_y1),Pt(msg->p1_x2,msg->p1_y2)
+                                                    ,Pt(msg->p2_x1,msg->p2_y1),Pt(msg->p2_x2,msg->p2_y2)
+                                                    ,Pt(msg->p3_x1,msg->p3_y1),Pt(msg->p3_x2,msg->p3_y2)));
+            {
+                cout <<"set locate failed "<<endl;
+                sndResponse(clientList[index].cfd,mt::askGame,sbt::relocate);
+            }
             // 成功设了3架飞机
             if(gameList[gid].board1->getnum() == g_plane_num && gameList[gid].board2->getnum()== g_plane_num){
                 gameList[gid].ready = true ;
@@ -689,15 +700,18 @@ void Server::solveMsg(const int index )
 
         bool flag = true ;
         int gid = clientList[index].gameId ; 
+        // 猜棋子
         if (srcPacket.isSubType(sbt::unmask)){
-
+            // flag = 
         }
+        // 猜飞机位置
         else if (srcPacket.isSubType(sbt::locate)){
-
+            // flag = 
         }
+
 
         if (flag){
-
+            
             gameList[gid].turn = !gameList[gid].turn;
             gameTurn(gid);
         }

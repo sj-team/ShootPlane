@@ -55,6 +55,8 @@ public:
 	bool getmask(const Pt & p);
 	bool setPlane(const Pt & p1, const Pt & p2);
 	int getnum();
+
+	bool initLocate(const Pt &p1_1,const Pt &p1_2 ,const Pt &p2_1,const Pt &p2_2,const Pt &p3_1,const Pt &p3_2);
 	//bool erasePlane(const Pt & p1, const Pt & p2);
 };
 

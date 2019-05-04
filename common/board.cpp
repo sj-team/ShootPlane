@@ -115,7 +115,8 @@ void ChessBoard::clear() {
 			board[i][j] = bs::empty;
 			mask_board[i][j] = true;
 		}
-
+	plane_pos.clear();
+	plane_num =0;
 }
 
 uchar ChessBoard::umask(const Pt & p) {
@@ -168,3 +169,14 @@ bool ChessBoard::getmask(const Pt&p) {
 	return mask_board[p.y][p.x];
 }
 
+bool ChessBoard::initLocate(const Pt &p1_1,const Pt &p1_2 ,const Pt &p2_1,const Pt &p2_2,const Pt &p3_1,const Pt &p3_2){
+
+	bool flag = true;
+	flag = flag && setPlane(p1_1,p1_2);
+	flag = flag && setPlane(p2_1,p2_2);
+	flag = flag && setPlane(p3_1,p3_2);
+	if(!flag)
+		clear();
+
+	return flag ;
+}

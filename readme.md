@@ -121,6 +121,7 @@ Grammar has not been verified. -->
 拒绝对战（被挑战者发）|0x41(resConnect)|0x03(deny)
 对战成功（对战成功后，挑战者告诉服务器收到）|0x31(connect)|0x01(success)
 请求放置(server向两位玩家发送，要求放置飞机)|0x51(askGame)|0x01(locate)
+请求重新放置(放置飞机失败，server请求client重新放置)|0x51(askGame)|0x10(relocate)
 请求猜棋(server向玩家发送，要求猜棋子)|0x51(askGame)|0x02(turn)
 请求猜棋(server向玩家发送，要求猜棋子)|0x51(askGame)|0x00(wait)
 放置信息(client放置飞机)|0x52(init)|0x01(locate)
@@ -142,8 +143,8 @@ Grammar has not been verified. -->
 ## **游戏过程**
 行为|maintype|subtype|
 ---|:--:|---:
-猜点|0x32(play)|0x01(unmask)
-猜飞机位置|0x32(play)|0x02(locate)
+猜点|0x32(play)|0x02(unmask)
+猜飞机位置|0x32(play)|0x01(locate)
 反馈猜点（server反馈）|0x42(resPlay)|0x02(unmask)
 反馈猜位置（server反馈）|0x42(resPlay)|0x01(locate)
 反馈输（server反馈）|0x42(resPlay)|0x03(win)

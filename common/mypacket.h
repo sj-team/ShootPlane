@@ -112,7 +112,11 @@ namespace sbt
 	const unsigned char locate = 0x01;
 	const unsigned char wait = 0x00 ;
 	const unsigned char turn = 0x02 ;
+	const unsigned char relocate = 0x10 ;
+	
+
 	const unsigned char unmask = 0x02;
+
 
 };
 
@@ -161,12 +165,9 @@ struct changePwdData {
 
 // locate 
 struct locateData {
-	unsigned char x1 ;
-	unsigned char y1 ;
-	unsigned char x2 ;
-	unsigned char y2 ;
-	unsigned char x3 ;
-	unsigned char y3 ;
+	unsigned char p1_x1 , p1_y1 , p1_x2 , p1_y2 ;
+	unsigned char p2_x1 , p2_y1 , p2_x2 , p2_y2 ;
+	unsigned char p3_x1 , p3_y1 , p3_x2 , p3_y2 ;
 };
 
 
