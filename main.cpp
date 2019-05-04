@@ -1,18 +1,16 @@
-#include "server.h"
-
+#include "socketmanager.h"
+#include <QApplication>
+socketManager *socketManagerW;
 int main(int argc, char *argv[])
 {
+    QApplication a(argc, argv);
+    socketManagerW=new socketManager;
 
-    create_daemon();    
+    socketManagerW->topLogin->show();
 
-    parseCMD(argc, argv, false);
+//    //GameGui w;
+    CreateGame w;
+    w.show();
 
-	signal(SIGPIPE,SIG_IGN);
-	signal(SIGCHLD, SIG_IGN);
-
-    Server * server = new Server();
-
-    server->run();
-
-	return 0;
+    return a.exec();
 }
