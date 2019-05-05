@@ -10,7 +10,7 @@ bool debug = false;
 
 1. 
 is
-*/
+*/ 
 
 Server::Server()
 {
@@ -126,11 +126,18 @@ void Server::removeLogin (vector<loginAction>::iterator i)
 
 void Server::removeGame( int gid )
 {
+    cout << "remove game "<<endl;
     auto iter = gameList.begin() + gid ;
 
+    // 如果未准备好 ， 则告知双方下线
     if(! iter->ready ){
         sndResponse(clientList[iter->index1].cfd,mt::resConnect,sbt::deny);
         sndResponse(clientList[iter->index2].cfd,mt::connect,sbt::deny);
+    }
+    else // 如果已经准备好，即已经进入游戏，则当前turn的人判输 
+    {
+        sndResponse(clientList[iter->index1].cfd,mt::resPlay,iter->turn?sbt::lose:sbt::win);
+        sndResponse(clientList[iter->index2].cfd,mt::resPlay,iter->turn?sbt::win:sbt::lose);
     }
 
     clientList[iter->index1].gameId = -1;
@@ -148,10 +155,19 @@ void Server::removeGame( int gid )
     
 }
 
+
+// 完成游戏的轮转 , 并判断是否游戏结束
 void Server::gameTurn(int gid )
 {
+    gameList[gid].turn = !gameList[gid].turn;
     auto iter = gameList.begin() + gid ; 
 
+
+    if (gameList[gid].board1->getnum() == 0 || gameList[gid].board2->getnum() == 0)
+    {    
+        removeGame(gid);
+        return ;
+    }
     if ( iter->turn){
         sndResponse(clientList[iter->index1].cfd , mt::askGame , sbt::turn);
         sndResponse(clientList[iter->index2].cfd , mt::askGame , sbt::wait);
@@ -162,19 +178,21 @@ void Server::gameTurn(int gid )
         sndResponse(clientList[iter->index2].cfd , mt::askGame , sbt::turn);
     }
 
+    
     //if (turn == (id == index1))
 }
 
 
 // judge whether game is over or not 
 // if end game , send msg to palyer 
-void Server::endGame( int gid , bool turn)
-{
+// void Server::endGame( int gid , bool turn)
+// {
 
-    // TODO  : tell result ;
-
-    removeGame(gid);
-}
+//     // TODO  : tell result ;
+//     if (gameList[gid].board1->plane_num == 0 || gameList[gid].board2->plane_num == 0)
+//         removeGame(gid);
+    
+// }
 
 void Server::user_online ( int cfdindex )
 {
@@ -576,7 +594,10 @@ void Server::solveMsg(const int index )
 
     // solve start a game 
     else if (srcPacket.isMainType(mt::connect)){
-        
+        if(clientList[index].gameId >=0){
+            cout <<"已经开始游戏，无法继续新建游戏"<<endl;
+            return ;
+        }
         if(srcPacket.isSubType(sbt::request)){
             string oppo_name (srcPacket.msg);
         
@@ -617,8 +638,9 @@ void Server::solveMsg(const int index )
             int oppo_index = gameList[gid].index2 ;
             removeGame(gid);
 
-            sndResponse(clientList[oppo_index].cfd, mt::resConnect, sbt::deny);            
+            //sndResponse(clientList[oppo_index].cfd, mt::resConnect, sbt::deny);            
         }
+        // 完成棋盘的建立
         else if (srcPacket.isSubType(sbt::success)){
             
             int gid = clientList[index].gameId ;
@@ -642,6 +664,7 @@ void Server::solveMsg(const int index )
     else if (srcPacket.isMainType(mt::resConnect)){
         string oppo_name (srcPacket.msg);
         int oppo_index = nameIndex[oppo_name];
+
         if (srcPacket.isSubType(sbt::accept)){
             
             sndResponse(clientList[oppo_index].cfd, mt::resConnect, sbt::accept);
@@ -649,37 +672,37 @@ void Server::solveMsg(const int index )
         else if (srcPacket.isSubType(sbt::deny)){
 
             removeGame(clientList[index].gameId);
-            sndResponse(clientList[oppo_index].cfd, mt::resConnect, sbt::deny);
+            //sndResponse(clientList[oppo_index].cfd, mt::resConnect, sbt::deny);
         }
     }
 
-    // TODO
+    // 放置 飞机
     else if (srcPacket.isMainType(mt::init)){
+        int gid = clientList[index].gameId;
+        if (gid < 0 || gameList[gid].ready)
+            return ;
         if (srcPacket.isSubType(sbt::locate)){
-            
-            int gid = clientList[index].gameId;
-            
-        
-            ChessBoard * board ; 
-            if (index == gameList[gid].index1){
-                board = gameList[gid].board1 = new ChessBoard(index );
-            }
-            else if (index == gameList[gid].index2){
-                board = gameList[gid].board2 = new ChessBoard(index);
-            }
-            // TODO : new board 
-            bool flag = true ; 
+            // ChessBoard * board ; 
+            // if (index == gameList[gid].index1){
+            //     board = gameList[gid].board1 = new ChessBoard(index );
+            // }
+            // else if (index == gameList[gid].index2){
+            //     board = gameList[gid].board2 = new ChessBoard(index);
+            // }
+            // // TODO : new board 
+            // bool flag = true ; 
 
-            if (flag = false){
+            // if (flag = false){
                 
-            }
+            // }
             
             locateData * msg = (locateData *) srcPacket.msg;
 
             // if set failed 
             if(!clientList[index].my_board->initLocate(Pt(msg->p1_x1,msg->p1_y1),Pt(msg->p1_x2,msg->p1_y2)
                                                     ,Pt(msg->p2_x1,msg->p2_y1),Pt(msg->p2_x2,msg->p2_y2)
-                                                    ,Pt(msg->p3_x1,msg->p3_y1),Pt(msg->p3_x2,msg->p3_y2)));
+                                                    ,Pt(msg->p3_x1,msg->p3_y1),Pt(msg->p3_x2,msg->p3_y2))
+                )
             {
                 cout <<"set locate failed "<<endl;
                 sndResponse(clientList[index].cfd,mt::askGame,sbt::relocate);
@@ -688,7 +711,6 @@ void Server::solveMsg(const int index )
             if(gameList[gid].board1->getnum() == g_plane_num && gameList[gid].board2->getnum()== g_plane_num){
                 gameList[gid].ready = true ;
                 gameList[gid].turn = true ; 
-
                 gameTurn(gid);
             }
         }
@@ -698,23 +720,56 @@ void Server::solveMsg(const int index )
     // TODO
     else if (srcPacket.isMainType(mt::play)){
 
+
         bool flag = true ;
         int gid = clientList[index].gameId ; 
+
+        if(gid <0 || !gameList[gid].ready )
+            return ;
+
         // 猜棋子
         if (srcPacket.isSubType(sbt::unmask)){
-            // flag = 
+
+            unmaskPointData * recvMsg = (unmaskPointData *)srcPacket.msg ;
+            int x = recvMsg->x ;
+            int y = recvMsg->y ;
+            unmaskPointResult msg  ;
+
+            msg.x = x ;
+            msg.y = y ;
+            msg.result = clientList[index].oppo_board->unmask(Pt(x,y));
+
+            desPacket.fillPacket(mt::resPlay,sbt::unmask,&msg , sizeof(msg));
+
+            serverSend(clientList[index].cfd, desPacket);
+
         }
         // 猜飞机位置
         else if (srcPacket.isSubType(sbt::locate)){
-            // flag = 
+
+            unmaskLocateData * recvMsg = (unmaskLocateData *) srcPacket.msg;
+            int x1 = recvMsg-> x1 ;
+            int y1 = recvMsg-> y1 ;
+            int x2 = recvMsg-> x2 ;
+            int y2 = recvMsg-> y2 ;
+           
+            unmaskLocateResult msg ; 
+            msg.x1 = x1 ;
+            msg.y1 = y1 ;
+            msg.x2 = x2 ;
+            msg.y2 = y2 ;
+            msg.result = clientList[index].oppo_board->unmaskPlane(Pt(x1,y1),Pt(x2,y2));
+           
+            desPacket.fillPacket(mt::resPlay,sbt::locate,&msg,sizeof(msg));
+
+            serverSend(clientList[index].cfd,desPacket);
         }
 
+        else 
+            return ;
 
-        if (flag){
-            
-            gameList[gid].turn = !gameList[gid].turn;
-            gameTurn(gid);
-        }
+        gameTurn(gid);
+
 
     }
 
@@ -755,6 +810,7 @@ void Server::tell_clinet_onoffline (int index ,bool isOnline)
     //strcpy(packet.msg , name );
     int len = strlen(name)+1 ;
 
+    // TODO
     if(isOnline)
         packet.fillPacket(mt::updateList,sbt::tellOnline, name ,len);
     else   

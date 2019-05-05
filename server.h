@@ -89,7 +89,7 @@ private :
 
     void removeGame( int gid );
 
-    void endGame( int gid , bool turn);
+    //void endGame( int gid , bool turn);
 
     // tell user wait or play
     void gameTurn(int gid );

@@ -116,6 +116,8 @@ namespace sbt
 	
 
 	const unsigned char unmask = 0x02;
+	const unsigned char win = 0x03 ;
+	const unsigned char lose = 0x04;
 
 
 };
@@ -169,6 +171,32 @@ struct locateData {
 	unsigned char p2_x1 , p2_y1 , p2_x2 , p2_y2 ;
 	unsigned char p3_x1 , p3_y1 , p3_x2 , p3_y2 ;
 };
+
+
+
+struct unmaskPointData{
+	unsigned char x ;
+	unsigned char y ;
+};
+
+struct unmaskLocateData{
+	unsigned char x1 , y1 ;
+	unsigned char x2 , y2 ;
+};
+
+struct unmaskPointResult{
+	unsigned char x ;
+	unsigned char y ;
+	unsigned char result ;
+};
+
+struct unmaskLocateResult{
+	unsigned char x1 , y1 ;
+	unsigned char x2 , y2 ;
+	unsigned char result ;
+};
+
+
 
 
 int fillPacketHeader(packetHeader & header , unsigned char mainType , unsigned char resType , unsigned short msgLen);
@@ -258,10 +286,11 @@ struct loginAction
 struct gameInfo {
     
 //    int gameId ; 
-    bool ready ; 
+    // 表示双方已经进入正常游戏界面
+	// 已经完成了对局的建立和飞机的摆放
+	bool ready ; 
 
 	// turn is true , then index1's turn 
-    // turn == (id == index1)
     bool turn ; 
     // 1 为挑战者  2 为被挑战者 为clientinfo的下标
     int index1 , index2 ;

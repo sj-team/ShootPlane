@@ -119,12 +119,26 @@ void ChessBoard::clear() {
 	plane_num =0;
 }
 
-uchar ChessBoard::umask(const Pt & p) {
+uchar ChessBoard::unmask(const Pt & p) {
 	if (!p.legal())
 		return bs::err;
 
 	mask_board[p.y][p.x] = false;
 	return board[p.y][p.x];
+}
+
+bool ChessBoard::unmaskPlane(const Pt & p1 ,const Pt& p2){
+
+	for (auto i = plane_pos.begin();i!=plane_pos.end();i++){
+		//if (*i==pair<Pt,Pt>(p1,p2))
+		if (i->first.x == p1.x && i->first.y == p1.y && i->second.x == p2.x && i->second.y ==p2.y)
+		{
+			plane_pos.erase(i);
+			plane_num -- ;
+			return true ;
+		}
+	}	
+	return false ;
 }
 
 bool ChessBoard::setPlane(const Pt & p1, const Pt & p2) {

@@ -15,6 +15,9 @@ fd_set getSet(int cfd)
 
 int socketSend (int cfd , const Packet & packet)
 {
+	if (cfd <0)
+		return 0;
+
 	int msgLen = getPacketLen(packet);
 	int totalLen = 0;
 	int sndLen ;

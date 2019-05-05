@@ -50,7 +50,8 @@ private:
 public:
 	ChessBoard(int id);
 	void clear();
-	uchar umask(const Pt & p);
+	uchar unmask(const Pt & p);
+	bool unmaskPlane(const Pt & p1 ,const Pt& p2);
 	uchar getboard(const Pt & p, int cid = -1);
 	bool getmask(const Pt & p);
 	bool setPlane(const Pt & p1, const Pt & p2);

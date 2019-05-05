@@ -7,10 +7,11 @@ int main(int argc, char *argv[])
 
     parseCMD(argc, argv, false);
 
+    // TODO
 	signal(SIGPIPE,SIG_IGN);
 	signal(SIGCHLD, SIG_IGN);
-
     Server * server = new Server();
+
 
     server->run();
 
