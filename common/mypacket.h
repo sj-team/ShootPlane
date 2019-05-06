@@ -38,6 +38,7 @@ namespace cstate
 	const char online = '1' ;
 	const char offline = '0' ;
 	const char playing = '2';
+
 };
 
  namespace mt

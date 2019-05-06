@@ -39,7 +39,7 @@ int socketSend (int cfd , const Packet & packet)
 				cerr<<"select error "<<endl;
 				return -1 ;
 			case 0 :
-				cerr<<"timeOut error"<<endl;
+				cerr<<"send timeOut error"<<endl;
 				return -1;
 			default :
 				sndLen = send(cfd, buff + totalLen, msgLen - totalLen, 0);
@@ -83,7 +83,7 @@ int socketRecv(int cfd , Packet & packet)
 				cerr << "select error " << endl;
 				return -1;
 			case 0:
-				cerr << "timeOut error" << endl;
+				cerr << "recv timeOut error" << endl;
 				return -1;
 			default:
 				recvNum = recv(cfd, buff + totalLen, msgLen - totalLen, 0);

@@ -51,7 +51,7 @@ private :
 
     void removeLogin (vector<loginAction>::iterator i);
 
-    void tell_clinet_onoffline (int index ,bool isOnline);
+    void tell_client_update (int index );
 
     void close_cfd(int cfd );
 
@@ -87,7 +87,7 @@ private :
 
     void user_leave( int index );
 
-    void removeGame( int gid );
+    void removeGame( int gid ,int id = -1);
 
     //void endGame( int gid , bool turn);
 

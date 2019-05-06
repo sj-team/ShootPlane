@@ -124,25 +124,46 @@ void Server::removeLogin (vector<loginAction>::iterator i)
     cout <<"erase ok !\n";
 }
 
-void Server::removeGame( int gid )
+
+// 先 remove game  ，再 关闭连接
+// id 判断胜负 id是谁谁就输
+void Server::removeGame( int gid , int id )
 {
+    if (gid <0)
+        return ;
     cout << "remove game "<<endl;
     auto iter = gameList.begin() + gid ;
 
+    //print("start remove game gid=",gid);
+    cout <<"start remove game gid = "<<gid <<endl;
+
     // 如果未准备好 ， 则告知双方下线
     if(! iter->ready ){
-        sndResponse(clientList[iter->index1].cfd,mt::resConnect,sbt::deny);
-        sndResponse(clientList[iter->index2].cfd,mt::connect,sbt::deny);
+        if (id != iter->index1)
+            sndResponse(clientList[iter->index1].cfd,mt::resConnect,sbt::deny);
+        if (id != iter->index2)
+            sndResponse(clientList[iter->index2].cfd,mt::connect,sbt::deny);
     }
-    else // 如果已经准备好，即已经进入游戏，则当前turn的人判输 
+    else // 如果已经准备好，即已经进入游戏，则当前turn的人判输 或主动投降的人输
     {
-        sndResponse(clientList[iter->index1].cfd,mt::resPlay,iter->turn?sbt::lose:sbt::win);
-        sndResponse(clientList[iter->index2].cfd,mt::resPlay,iter->turn?sbt::win:sbt::lose);
+        if (id >=0){
+            sndResponse(clientList[iter->index1].cfd,mt::resPlay,iter->index1==id?sbt::lose:sbt::win);
+            sndResponse(clientList[iter->index2].cfd,mt::resPlay,iter->index2==id?sbt::lose:sbt::win);
+        }
+        else {
+            sndResponse(clientList[iter->index1].cfd,mt::resPlay,iter->turn?sbt::lose:sbt::win);
+            sndResponse(clientList[iter->index2].cfd,mt::resPlay,iter->turn?sbt::win:sbt::lose);
+        }
     }
 
     clientList[iter->index1].gameId = -1;
     clientList[iter->index2].gameId = -1 ;
     clientList[iter->index1].status = clientList[iter->index2].status = cstate::online;
+
+    cout <<"开始 广播 游戏"<<endl;
+    tell_client_update(iter->index1);
+    tell_client_update(iter->index2);
+
     if (iter->board1)
         delete iter->board1 ;
     if (iter->board2)
@@ -150,8 +171,13 @@ void Server::removeGame( int gid )
     clientList[iter->index1].my_board = clientList[iter->index1].oppo_board = NULL ;
     clientList[iter->index2].my_board = clientList[iter->index2].oppo_board = NULL ;
     
-
     gameList.erase(iter);
+
+    for (int i = gid ; i<gameList.size();i++){
+        clientList[gameList[i].index1].gameId = i;
+        clientList[gameList[i].index2].gameId = i;
+    }
+
     
 }
 
@@ -206,7 +232,7 @@ void Server::user_online ( int cfdindex )
     clientList[index].cfd = cfd ;
     clientList[index].sockaddr = i->sockaddr;
     clientList[index].status = cstate::online;
-    tell_clinet_onoffline (index , true);
+    tell_client_update (index);
     string name = clientList[index].name ;
     loginList.erase(i);
 
@@ -311,13 +337,13 @@ void Server::user_leave( int index )
 void Server::user_offline( int index )
 {
     if (clientList[index].gameId !=-1)
-        removeGame(clientList[index].gameId);
+        removeGame(clientList[index].gameId,index);
 
     clientList[index].status = cstate::offline;
-    tell_clinet_onoffline(index , false);
-
     close_cfd (clientList[index].cfd);
     clientList[index].cfd = -1 ;
+
+    tell_client_update(index );
 
 }
 
@@ -594,11 +620,15 @@ void Server::solveMsg(const int index )
 
     // solve start a game 
     else if (srcPacket.isMainType(mt::connect)){
-        if(clientList[index].gameId >=0){
-            cout <<"已经开始游戏，无法继续新建游戏"<<endl;
-            return ;
-        }
+
         if(srcPacket.isSubType(sbt::request)){
+            
+            if(clientList[index].gameId >=0){
+                
+                cout <<"已经开始游戏，无法继续新建游戏"<<endl;
+                cout << clientList[index].gameId <<' '<<gameList.size()<<endl;
+                return ;
+            }
             string oppo_name (srcPacket.msg);
         
 
@@ -630,13 +660,16 @@ void Server::solveMsg(const int index )
             clientList[oppo_index].gameId = gid ; 
             clientList[index].status = clientList[oppo_index].status = cstate::playing;
             
+            tell_client_update(index); 
+            tell_client_update(oppo_index);
+
             sndResponse(clientList[oppo_index].cfd,mt::connect,sbt::request,clientList[index].name.c_str());
         }
 
         else if (srcPacket.isSubType(sbt::deny)){
             int gid = clientList[index].gameId;
             int oppo_index = gameList[gid].index2 ;
-            removeGame(gid);
+            removeGame(gid,index);
 
             //sndResponse(clientList[oppo_index].cfd, mt::resConnect, sbt::deny);            
         }
@@ -662,8 +695,13 @@ void Server::solveMsg(const int index )
     }
 
     else if (srcPacket.isMainType(mt::resConnect)){
-        string oppo_name (srcPacket.msg);
-        int oppo_index = nameIndex[oppo_name];
+        
+        //string oppo_name (srcPacket.msg);
+        int gid = clientList[index].gameId ;
+        if(gid<0)
+            return ;
+
+        int oppo_index = gameList[gid].index1;
 
         if (srcPacket.isSubType(sbt::accept)){
             
@@ -671,7 +709,7 @@ void Server::solveMsg(const int index )
         }
         else if (srcPacket.isSubType(sbt::deny)){
 
-            removeGame(clientList[index].gameId);
+            removeGame(clientList[index].gameId,index);
             //sndResponse(clientList[oppo_index].cfd, mt::resConnect, sbt::deny);
         }
     }
@@ -801,7 +839,8 @@ void Server::solveMsg(const int index )
 
 }
 
-void Server::tell_clinet_onoffline (int index ,bool isOnline)
+//void Server::tell_clinet_onoffline (int index)
+void Server::tell_client_update(int index )
 {
     int cfd = clientList[index].cfd ;
     const char * name = clientList[index].name.c_str();
@@ -810,12 +849,13 @@ void Server::tell_clinet_onoffline (int index ,bool isOnline)
     //strcpy(packet.msg , name );
     int len = strlen(name)+1 ;
 
-    // TODO
-    if(isOnline)
+    cout <<"广播 update status = "<<int(clientList[index].status)<<endl;
+    if(clientList[index].status == cstate::online)
         packet.fillPacket(mt::updateList,sbt::tellOnline, name ,len);
-    else   
+    else if (clientList[index].status == cstate::offline)
         packet.fillPacket(mt::updateList,sbt::tellOffline, name ,len);
-
+    else if (clientList[index].status == cstate::playing)
+        packet.fillPacket(mt::updateList,sbt::tellPlaying, name , len);
     for(auto i = clientList.begin() ; i!=clientList.end();i++)
     {
         if(i->cfd <0 || i->cfd ==cfd)
