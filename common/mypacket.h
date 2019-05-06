@@ -208,4 +208,10 @@ struct Packet{
 
 
 };
+struct locateData{
+    unsigned char p1_x1,p1_y1,p1_x2,p1_y2;
+    unsigned char p2_x1,p2_y1,p2_x2,p2_y2;
+    unsigned char p3_x1,p3_y1,p3_x2,p3_y2;
+};
+
 #endif

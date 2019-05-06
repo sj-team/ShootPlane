@@ -38,6 +38,8 @@ public:
 
 
 
+
+
 private slots:
     void on_pushButton_undo_clicked();
 
@@ -63,6 +65,8 @@ private:
     QString aircraft1;
     QString aircraft2;
     QString aircraft3;
+
+
 
 };
 

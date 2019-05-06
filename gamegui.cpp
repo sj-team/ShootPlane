@@ -4,7 +4,8 @@
 #include "errbox.h"
 
 #include "mytablewidget.h"
-
+#include "socketmanager.h"
+extern socketManager *socketManagerW;
 GameGui::GameGui(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::GameGui)
@@ -26,13 +27,12 @@ GameGui::GameGui(QWidget *parent) :
     //此处要修改为creategame中的三个坐标
     QString tmp_str[3]={"B2-E2","D4-D7","G5-G2"};
     for(int i=0;i<3;i++)
-        ui->tableWidget_2->setPlane(tmp_str[i]);
+        setInitPlane(tmp_str[i]);
 
-//    for(int i=0;i<10;i++)
-//    {
-//       ui->tableWidget_2->setPoint(i%3,i/3,i%3);
-//    }
-//    //ui->tableWidget_2->setPoint(3,4,1);
+    setPoint(true,3,7,0);
+    setPoint(true,5,7,1);
+    setPoint(true,3,9,2);
+    setPoint(true,4,6,1);
 
 
     connect(ui->tableWidget,SIGNAL(send(QString)),this,SLOT(showText(QString)));
@@ -76,6 +76,8 @@ bool GameGui::eventFilter(QObject *object, QEvent *e)
 {
     if(e->type()==QEvent::MouseButtonPress&&object==ui->label_close)
     {
+//        socketManagerW->myGameGui=nullptr;
+//        socketManagerW->return_friendlist();
          close();
     }
     else if(e->type()==QEvent::MouseButtonPress&&object==ui->label_min){
@@ -137,6 +139,51 @@ void GameGui::showText(QString str)
     ui->lineEdit->setText(str);
 }
 
+void GameGui::setInitPlane(QString str)
+{
+    ui->tableWidget_2->setPlane(str);
+}
+
+void GameGui::setPlane(bool isMyGuessResult, int x1, int y1, int x2, int y2)
+{
+    if(isMyGuessResult)
+    {
+        ui->tableWidget->setPlane(x1,y1,x2,y2);
+    }
+    else
+    {
+        ui->tableWidget_2->setPlane(x1,y1,x2,y2);
+    }
+}
+
+void GameGui::setPoint(bool isMyGuessResult, int x, int y, const uchar status)
+{
+    if(isMyGuessResult)
+    {
+        ui->tableWidget->setPoint(x,y,status);
+    }
+    else
+    {
+        ui->tableWidget_2->setPoint(x,y,status);
+    }
+}
 
 
+void GameGui::on_pushButton_clicked()
+{
+    ui->tableWidget->clearAirCraft(ui->lineEdit->text());
 
+    //发送坐标信息
+}
+
+
+void GameGui::on_tableWidget_itemSelectionChanged()
+{
+    if(!ui->lineEdit->text().isEmpty())
+    {
+        //qDebug()<<ui->lineEdit->text();
+        ui->tableWidget->clearAirCraft(ui->lineEdit->text());
+    }
+
+    ui->tableWidget->clearSelection ();
+}

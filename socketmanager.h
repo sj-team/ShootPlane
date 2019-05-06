@@ -24,6 +24,10 @@ public:
     ChangePwd *myChangePwd;
     FriendList *myFriendList;
     QMessageBox *startRequestWaiting;
+    CreateGame *myCreateGame;
+    GameGui *myGameGui;
+    QMessageBox *hintMessage_s;
+    QMessageBox *recvMessage;
     void send_data(void* data,int len); //发送消息
     void solve_packet(Packet* myPacket);
     void chgpasswd();
@@ -31,9 +35,10 @@ public:
     void login_success();
     void solve_friendlist(QString flist);
     void solve_updfriendlist(Packet *p);
-    void solve_recv_newgame(char *name);
     void solve_connect_failure();
     void solve_connect_success();
+    void solve_start_locate();
+    void return_friendlist();
 signals:
 
 public slots:

@@ -23,6 +23,8 @@ FriendList::FriendList(QWidget *parent) :
     ui->label_close->installEventFilter(this);
     ui->label_min->installEventFilter(this);
     ui->listWidget->setDragDropMode(QListWidget::InternalMove);
+    connect(this, SIGNAL(signal_new_game(QString)), this, SLOT(solve_recv_newgame(QString)),Qt::QueuedConnection);
+    connect(this, SIGNAL(signal_stop_connect()), this, SLOT(slot_stop_connect()),Qt::QueuedConnection);
     /*
     for(int j = 0;j<55;j++)
     {
@@ -33,7 +35,12 @@ FriendList::FriendList(QWidget *parent) :
 //        qDebug()<<QString("好友")+QString::number(j);
     }*/
 }
-
+void FriendList::slot_stop_connect(){
+    if(socketManagerW->recvMessage){
+        socketManagerW->recvMessage->setResult(QMessageBox::StandardButton::Close);
+        socketManagerW->recvMessage->close();
+    }
+}
 FriendList::~FriendList()
 {
     delete ui;
@@ -123,17 +130,41 @@ void FriendList::testend(){
     if(socketManagerW->startRequestWaiting){
         socketManagerW->startRequestWaiting->close();
         socketManagerW->startRequestWaiting->setResult(0);
+
     }
 }
+void FriendList::solve_recv_newgame(QString name){
+   socketManagerW->recvMessage =new QMessageBox("new game",QString(name)+" 向你发起对战，是否接受？",QMessageBox::Icon::Question,QMessageBox::StandardButton::Yes,QMessageBox::StandardButton::No,QMessageBox::StandardButton::NoButton);
+    //myFriendList->setEnabled(false);
+    int res=socketManagerW->recvMessage->exec();
+    delete socketManagerW->recvMessage;
+    socketManagerW->recvMessage=nullptr;
+    Packet p;
+    strcpy(p.msg,name.toStdString().c_str());
+    if(res==QMessageBox::Close){
+        qDebug()<<"cancel";
+    }
+    else if(res==QMessageBox::Yes){//接受
+        qDebug()<<"accept";
+        fillPacketHeader(p.header,mt::resConnect,sbt::accept,MAXNAMELEN);
+    }else{//拒绝
+         qDebug()<<"deny";
+        fillPacketHeader(p.header,mt::resConnect,sbt::deny,MAXNAMELEN);
+    }
+    socketManagerW->send_data(&p,MAXNAMELEN+HEADERLEN);
+}
+
+
+
 void FriendList::on_listWidget_itemDoubleClicked(QListWidgetItem* item)
 {
     for(auto i:friendDataList){
         if(i.name==item->text()){
             if(i.status==i.stat_offline){
-                QMessageBox::warning(nullptr,"warning","用户未登录",0,0);
+                QMessageBox::information(nullptr,"warning","用户未登录",0,0);
                 return;
             }else if(i.status==i.stat_gaming){
-                QMessageBox::warning(nullptr,"warning","用户在游戏中",0,0);
+                QMessageBox::information(nullptr,"warning","用户在游戏中",0,0);
                 return;
             }
             break;
@@ -151,8 +182,14 @@ void FriendList::on_listWidget_itemDoubleClicked(QListWidgetItem* item)
         fillPacketHeader(p.header,mt::connect,sbt::success,MAXNAMELEN);
         strcpy(p.msg,temp_str.c_str());
         socketManagerW->send_data(&p,MAXNAMELEN+HEADERLEN);
-        QMessageBox::warning(nullptr,"test","success");
+        //QMessageBox::warning(nullptr,"test","success");
     }else{
+        if(res==QMessageBox::Cancel){
+            qDebug()<<"cancelled";
+            fillPacketHeader(p.header,mt::resConnect,sbt::deny,MAXNAMELEN);
+            strcpy(p.msg,temp_str.c_str());
+            socketManagerW->send_data(&p,MAXNAMELEN+HEADERLEN);
+        }
        qDebug()<<"connect failure err: "<< res;
     }
 

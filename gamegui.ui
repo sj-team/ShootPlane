@@ -466,9 +466,9 @@ color: rgb(0, 0, 0)</string>
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>40</y>
+       <y>30</y>
        <width>361</width>
-       <height>101</height>
+       <height>111</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">

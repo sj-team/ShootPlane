@@ -56,6 +56,12 @@ private:
 private slots:
   void on_listWidget_itemDoubleClicked(QListWidgetItem* item);
   void testend();
+signals:
+    void signal_new_game(QString name);
+    void signal_stop_connect();
+public slots:
+  void solve_recv_newgame(QString name);
+  void slot_stop_connect();
 };
 
 bool operator<(const FriendList::friendData &a,const FriendList::friendData &b);

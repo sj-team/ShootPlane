@@ -20,13 +20,17 @@ unsigned short ntohs(unsigned short data){
    return ans;
 }
 #endif
+
 socketManager::socketManager(QObject *parent):QObject(parent){
     clientSocket=new QTcpSocket();
     topLogin=new Login;
     myFriendList=nullptr;
     myChangePwd=nullptr;
+    myCreateGame=nullptr;
+    myGameGui=nullptr;
     startRequestWaiting=new QMessageBox(QMessageBox::Icon::Information,"waiting","等待对方回应...",QMessageBox::StandardButton::Cancel);
-
+    hintMessage_s=nullptr;
+    //connect(this, SIGNAL(signal_new_game(char*)), this->myFriendList, SLOT(solve_recv_newgame(char*)));
 }
 socketManager::~socketManager()
 {
@@ -41,6 +45,9 @@ socketManager::~socketManager()
     }
     if(startRequestWaiting!=nullptr){
         delete startRequestWaiting;
+    }
+    if(hintMessage_s!=nullptr){
+        delete hintMessage_s;
     }
     clientSocket->disconnect();
     delete clientSocket;
@@ -118,14 +125,28 @@ void socketManager::solve_connect_failure(){
 }
 
 void socketManager::solve_connect_success(){
+    qDebug()<<"connect success";
     if(startRequestWaiting){
         startRequestWaiting->close();
         startRequestWaiting->setResult(0);
+
     }
 }
 
+void socketManager::solve_start_locate(){
+    myFriendList->setEnabled(false);
+    if(myCreateGame==nullptr){
+        myCreateGame=new CreateGame;
+        myCreateGame->show();
+    }
+
+}
+void socketManager::return_friendlist(){//返回列表界面
+    myFriendList->setEnabled(true);
+}
 void socketManager::solve_packet(Packet *myPacket){
     qDebug()<<int(myPacket->header.mainType)<<"   "<<int(myPacket->header.subType);
+    QMessageBox *hintMessage=nullptr;
     switch(myPacket->header.mainType){
         case mt::resLogin:{ //server回应登录
             switch(myPacket->header.subType){
@@ -135,7 +156,7 @@ void socketManager::solve_packet(Packet *myPacket){
                     chgpasswd();
                     break;
                 case sbt::pwderror:
-                    QMessageBox::warning(nullptr,"warning","密码错误");
+                    hintMessage= new QMessageBox(QMessageBox::Icon::Warning,"warning","密码错误");
                     break;
                 case sbt::repeaton:
                     //break;
@@ -167,10 +188,15 @@ void socketManager::solve_packet(Packet *myPacket){
         case mt::connect:{
             switch(myPacket->header.subType){
                 case sbt::request:
-                    solve_recv_newgame(myPacket->msg);
+                    qDebug()<<"sssssss";
+                    emit this->myFriendList->signal_new_game(myPacket->msg);
                     break;
                 case sbt::success: //暂时不会产生,只会发送
                     //solve_friendlist(myPacket->msg);
+                    break;
+                case sbt::deny:
+                    qDebug()<<"deny to recv";
+                    emit this->myFriendList->signal_stop_connect();
                     break;
                 default:
                     break;
@@ -184,7 +210,8 @@ void socketManager::solve_packet(Packet *myPacket){
                     break;
                 case sbt::deny:
                     solve_connect_failure();
-                    QMessageBox::warning(nullptr,"warning","对方拒绝了对战");
+                    qDebug()<<"deny to sender";
+                    hintMessage= new QMessageBox(QMessageBox::Icon::Warning,"warning","对方拒绝了对战");
                     break;
                 default:
                     break;
@@ -195,15 +222,31 @@ void socketManager::solve_packet(Packet *myPacket){
             switch(myPacket->header.subType){
                 case sbt::idNotExit:
                     solve_connect_failure();
-                    QMessageBox::warning(nullptr,"warning","ID不存在");
+                    hintMessage= new QMessageBox(QMessageBox::Icon::Warning,"warning","ID不存在");
                     break;
                 case sbt::idOffline:
                     solve_connect_failure();
-                    QMessageBox::warning(nullptr,"warning","对方已下线");
+                    hintMessage= new QMessageBox(QMessageBox::Icon::Warning,"warning","对方已下线");
                     break;
                 case sbt::idPlaying:
                     solve_connect_failure();
-                    QMessageBox::warning(nullptr,"warning","对方已开始游戏");
+                    hintMessage= new QMessageBox(QMessageBox::Icon::Warning,"warning","对方已开始游戏");
+                    break;
+                default:
+                    break;
+            }
+            break;
+        }
+        case mt::askGame:{
+            switch(myPacket->header.subType){
+                case sbt::locate:
+                    solve_start_locate();
+                    break;
+                case sbt::turn:
+                    //solve_friendlist(myPacket->msg);
+                    break;
+                case sbt::wait:
+                    //solve_friendlist(myPacket->msg);
                     break;
                 default:
                     break;
@@ -213,32 +256,40 @@ void socketManager::solve_packet(Packet *myPacket){
         default:
             break;
     }
+    if(hintMessage!=nullptr){
+        if(hintMessage_s!=nullptr)delete hintMessage_s;
+        hintMessage->setModal(false);
+        hintMessage->show();
+        hintMessage_s=hintMessage;
+    }
 }
 void socketManager::ClientRecvData(){
     qDebug() << "receive data";
     static QByteArray current_byte_array;
     QByteArray temp_array;
     static Packet recv_packet;
-    current_byte_array += clientSocket->readAll();
-    static int next_readbyte=HEADERLEN;
-    static int status=0;
-    while(current_byte_array.length()>=next_readbyte){
-        if(status==0){
-            temp_array = current_byte_array.left(next_readbyte);
-            current_byte_array.remove(0, next_readbyte);
-            memcpy(&recv_packet.header,temp_array.data(),next_readbyte);
-            status=1;
-            next_readbyte=recv_packet.getLen()-HEADERLEN;
-        }else if(status==1){
-            temp_array = current_byte_array.left(next_readbyte);
-            current_byte_array.remove(0, next_readbyte);
-            memcpy(&recv_packet.msg,temp_array.data(),next_readbyte);
-            status=0;
-            next_readbyte=HEADERLEN;
-            solve_packet(&recv_packet);
+    while(clientSocket->bytesAvailable()>0){
+        current_byte_array += clientSocket->readAll();
+        static int next_readbyte=HEADERLEN;
+        static int status=0;
+        while(current_byte_array.length()>=next_readbyte){
+            if(status==0){
+                temp_array = current_byte_array.left(next_readbyte);
+                current_byte_array.remove(0, next_readbyte);
+                memcpy(&recv_packet.header,temp_array.data(),next_readbyte);
+                status=1;
+                next_readbyte=recv_packet.getLen()-HEADERLEN;
+            }else if(status==1){
+                temp_array = current_byte_array.left(next_readbyte);
+                current_byte_array.remove(0, next_readbyte);
+                memcpy(&recv_packet.msg,temp_array.data(),next_readbyte);
+                status=0;
+                next_readbyte=HEADERLEN;
+                solve_packet(&recv_packet);
+            }
         }
-
     }
+
 }
 void socketManager::ClientDisconnected(){
     if(clientSocket->isOpen())
@@ -246,18 +297,6 @@ void socketManager::ClientDisconnected(){
 
 }
 
-
-void socketManager::solve_recv_newgame(char *name){
-    int res=QMessageBox::information(nullptr,"new game",QString(name)+" 向你发起对战，是否接受？",QMessageBox::StandardButton::Yes,QMessageBox::StandardButton::No);
-    Packet p;
-    strcpy(p.msg,name);
-    if(res==QMessageBox::Yes){//接受
-        fillPacketHeader(p.header,mt::resConnect,sbt::accept,MAXNAMELEN);
-    }else{//拒绝
-        fillPacketHeader(p.header,mt::resConnect,sbt::deny,MAXNAMELEN);
-    }
-    send_data(&p,MAXNAMELEN+HEADERLEN);
-}
 
 int fillPacketHeader(packetHeader & header , unsigned char mainType , unsigned char resType , unsigned short msgLen)
 {

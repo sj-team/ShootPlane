@@ -4,13 +4,13 @@ socketManager *socketManagerW;
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    socketManagerW=new socketManager;
+    //socketManagerW=new socketManager;
 
-    socketManagerW->topLogin->show();
+//    socketManagerW->topLogin->show();
 
-//    //GameGui w;
-    CreateGame w;
+    GameGui w;
     w.show();
+
 
     return a.exec();
 }
