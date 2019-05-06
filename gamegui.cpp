@@ -4,7 +4,8 @@
 #include "errbox.h"
 
 #include "mytablewidget.h"
-
+#include "socketmanager.h"
+extern socketManager *socketManagerW;
 GameGui::GameGui(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::GameGui)
@@ -76,6 +77,8 @@ bool GameGui::eventFilter(QObject *object, QEvent *e)
 {
     if(e->type()==QEvent::MouseButtonPress&&object==ui->label_close)
     {
+        socketManagerW->myGameGui=nullptr;
+        socketManagerW->return_friendlist();
          close();
     }
     else if(e->type()==QEvent::MouseButtonPress&&object==ui->label_min){

@@ -4,7 +4,8 @@
 # include <QMessageBox>
 
 #include "mytablewidget.h"
-
+#include "socketmanager.h"
+extern socketManager *socketManagerW;
 CreateGame::CreateGame(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::CreateGame)
@@ -62,6 +63,13 @@ bool CreateGame::eventFilter(QObject *object, QEvent *e)
 {
     if(e->type()==QEvent::MouseButtonPress&&object==ui->label_close)
     {
+        socketManagerW->myChangePwd=nullptr;
+        //send exit
+        socketManagerW->return_friendlist();
+
+
+
+
          close();
     }
     else if(e->type()==QEvent::MouseButtonPress&&object==ui->label_min){
@@ -117,7 +125,29 @@ void CreateGame::on_pushButton_send_clicked()
     }
     //此处发送三个飞机坐标
     qDebug()<<aircraft1<<aircraft2<<aircraft3;
-
+    locateData locdat;
+    std::string tempStr=aircraft1.toStdString();
+    locdat.p1_x1=tempStr[0]-'A';
+    locdat.p1_y1=tempStr[1]-'0';
+    locdat.p1_x2=tempStr[3]-'A';
+    locdat.p1_y2=tempStr[4]-'0';
+    tempStr=aircraft2.toStdString();
+    locdat.p2_x1=tempStr[0]-'A';
+    locdat.p2_y1=tempStr[1]-'0';
+    locdat.p2_x2=tempStr[3]-'A';
+    locdat.p2_y2=tempStr[4]-'0';
+    tempStr=aircraft3.toStdString();
+    locdat.p3_x1=tempStr[0]-'A';
+    locdat.p3_y1=tempStr[1]-'0';
+    locdat.p3_x2=tempStr[3]-'A';
+    locdat.p3_y2=tempStr[4]-'0';
+    Packet p;
+    p.fillPacket(mt::init,sbt::locate,&locdat,sizeof(locdat));
+    socketManagerW->send_data(&p,HEADERLEN+sizeof(locdat));
+    close();
+    socketManagerW->myFriendList->setEnabled(false);
+    socketManagerW->myGameGui=new GameGui;
+    socketManagerW->myGameGui->show();
 }
 
 void CreateGame::on_radioButton_down_toggled(bool checked)
