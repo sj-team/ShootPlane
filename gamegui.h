@@ -42,6 +42,18 @@ public:
     //设置标题
     void setTitle(QString str);
 
+    //设置用户名
+    void setUserName(QString str);
+
+    //设置对手名
+    void setOpName(QString str);
+
+    //设置当前操作者
+    void setCurOprator(QString str);
+
+    //设置当前状态
+    void setStatus(QString str);
+
 private slots:
 
     void on_radioButton_down_toggled(bool checked);
@@ -59,6 +71,8 @@ private slots:
     void on_pushButton_clicked();
 
     void on_tableWidget_itemSelectionChanged();
+
+    void on_pushButton_sur_clicked();
 
 private:
     Ui::GameGui *ui;

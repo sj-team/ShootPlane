@@ -44,6 +44,19 @@ public:
 
     void addFriend(QString name,int status);
 
+    //设置用户名
+    void setUserName(QString str);
+    //设置上次登录时间
+    void setLastLoginTime(QString str);
+    //设置当前在线时间
+    void setCurrentOnlineTime(QString str);
+    //设置当前状态
+    void setStatus(QString str);
+    //设置ip地址
+    void setIpAddress(QString str);
+    //设置端口
+    void setPort(QString str);
+
 private:
     Ui::FriendList *ui;
 

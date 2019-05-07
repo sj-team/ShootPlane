@@ -194,3 +194,33 @@ void FriendList::on_listWidget_itemDoubleClicked(QListWidgetItem* item)
     }
 
 }
+
+void FriendList::setUserName(QString str)
+{
+    ui->lineEdit_userName->setText(str);
+}
+
+void FriendList::setLastLoginTime(QString str)
+{
+    ui->lineEdit_lastLoginTime->setText(str);
+}
+
+void FriendList::setCurrentOnlineTime(QString str)
+{
+    ui->lineEdit_currentOnlineTime->setText(str);
+}
+
+void FriendList::setIpAddress(QString str)
+{
+    ui->lineEdit_ipAddress->setText(str);
+}
+
+void FriendList::setPort(QString str)
+{
+    ui->lineEdit_port->setText(str);
+}
+
+void FriendList::setStatus(QString str)
+{
+    ui->lineEdit_status->setText(str);
+}

@@ -191,3 +191,23 @@ void GameGui::on_pushButton_sur_clicked()
 {
     //投降按钮
 }
+
+void GameGui::setUserName(QString str)
+{
+    ui->lineEdit_uerName->setText(str);
+}
+
+void GameGui::setOpName(QString str)
+{
+    ui->lineEdit_opName->setText(str);
+}
+
+void GameGui::setCurOprator(QString str)
+{
+    ui->lineEdit_curPlayer->setText(str);
+}
+
+void GameGui::setStatus(QString str)
+{
+    ui->lineEdit_curStatus->setText(str);
+}
