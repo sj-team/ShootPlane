@@ -190,7 +190,7 @@ void FriendList::on_listWidget_itemDoubleClicked(QListWidgetItem* item)
     }else{
         if(res==QMessageBox::Cancel){
             qDebug()<<"cancelled";
-            fillPacketHeader(p.header,mt::resConnect,sbt::deny,MAXNAMELEN);
+            fillPacketHeader(p.header,mt::connect,sbt::deny,MAXNAMELEN);
             strcpy(p.msg,temp_str.c_str());
             socketManagerW->send_data(&p,MAXNAMELEN+HEADERLEN);
         }

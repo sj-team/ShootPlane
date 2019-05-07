@@ -13,7 +13,7 @@ GameGui::GameGui(QWidget *parent) :
     ui->setupUi(this);
     setWindowFlags(Qt::FramelessWindowHint| Qt::WindowSystemMenuHint);
     setAttribute(Qt::WA_TranslucentBackground);
-//    setAttribute(Qt::WA_DeleteOnClose,true);
+    setAttribute(Qt::WA_DeleteOnClose,true);
 
     ui->label_close->installEventFilter(this);
     ui->label_min->installEventFilter(this);

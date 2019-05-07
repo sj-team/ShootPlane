@@ -43,7 +43,8 @@ using namespace std ;
 #define HEADERLEN 4
 
 #define SNDALL "/@all"
-
+#define MAXBEATCTR 5
+#define BEATMSEC 1000
 namespace cstate
 {
     const char gaming = '2';
@@ -74,7 +75,8 @@ namespace cstate
     const unsigned char resLogin = 0x71;
     const unsigned char resSend = 0X72;
     const unsigned char resConf = 0X81 ;
-    const unsigned char resFileHead =0x73;
+    const unsigned char resFileHead = 0x73;
+    const unsigned char beat = 0xff;
  };
 
 namespace sbt

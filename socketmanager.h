@@ -11,7 +11,7 @@
 #include "changepwd.h"
 #include "common/mypacket.h"
 #include <QtNetwork/QtNetwork>
-
+#include <QTimer>
 class socketManager : public QObject
 {
     Q_OBJECT
@@ -31,6 +31,8 @@ public:
     QString name;
     QString op_name;
     QString game_name;
+    int beatTimeRecv;
+    QTimer *beatTimeSend;
     void send_data(void* data,int len); //发送消息
     void solve_packet(Packet* myPacket);
     void chgpasswd();
@@ -47,6 +49,8 @@ public:
     void solve_play_unmask(Packet *p);
     void solve_resPlay_locate(Packet *p);
     void solve_resPlay_unmask(Packet *p);
+    void solve_repeat_off();
+    void solve_beat();
 
 signals:
     void signal_surrender();
@@ -58,6 +62,7 @@ public slots:
     void ClientDisconnected();
     void slot_win();
     void slot_lose();
+    void slot_beat();
 };
 
 

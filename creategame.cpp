@@ -14,7 +14,7 @@ CreateGame::CreateGame(QWidget *parent) :
 
     setWindowFlags(Qt::FramelessWindowHint| Qt::WindowSystemMenuHint);
     setAttribute(Qt::WA_TranslucentBackground);
-//    setAttribute(Qt::WA_DeleteOnClose,true);
+    setAttribute(Qt::WA_DeleteOnClose,true);
 
     ui->label_close->installEventFilter(this);
     ui->label_min->installEventFilter(this);
@@ -63,7 +63,7 @@ bool CreateGame::eventFilter(QObject *object, QEvent *e)
 {
     if(e->type()==QEvent::MouseButtonPress&&object==ui->label_close)
     {
-        socketManagerW->myChangePwd=nullptr;
+        socketManagerW->myCreateGame=nullptr;
         //send exit
         socketManagerW->return_friendlist();
         //surrender
@@ -146,6 +146,7 @@ void CreateGame::on_pushButton_send_clicked()
     p.fillPacket(mt::init,sbt::locate,&locdat,sizeof(locdat));
     socketManagerW->send_data(&p,HEADERLEN+sizeof(locdat));
     close();
+    socketManagerW->myCreateGame=nullptr;
     socketManagerW->myFriendList->setEnabled(false);
     socketManagerW->myGameGui=new GameGui;
 
@@ -153,6 +154,7 @@ void CreateGame::on_pushButton_send_clicked()
     socketManagerW->myGameGui->setInitPlane(aircraft2);
     socketManagerW->myGameGui->setInitPlane(aircraft3);
     socketManagerW->myGameGui->show();
+
 }
 
 void CreateGame::on_radioButton_down_toggled(bool checked)
