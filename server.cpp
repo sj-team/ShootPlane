@@ -8,8 +8,11 @@ bool debug = false;
 
 /* TODO
 
-1. 
-is
+1. 关闭游戏界面发认输 
+
+2. 心跳包
+
+
 */ 
 
 Server::Server()
@@ -36,8 +39,36 @@ Server::~Server()
 
 
 
-}
+} 
 
+void Server::shootBeat(){
+
+    for (auto i = 0;i < loginList.size();i++)
+    {
+        //serverSend(loginList[i].cfd,beatPacket);
+        sndResponse(loginList[i].cfd, mt::beat , 0 );
+        if (--loginList[i].beat_counter <=0){
+            cout <<"loginList "<<i<<"离线"<<endl;
+            //close_cfd(loginList[i].cfd);
+            removeLogin(loginList.begin()+i);
+            i -- ;
+        }
+    }
+
+
+    for (auto i = 0 ; i < clientList.size();i++)
+        if(clientList[i].cfd >=0){
+            //serverSend(clientList[i].cfd,beatPacket);
+            sndResponse(clientList[i].cfd , mt::beat ,0);
+            if(--clientList[i].beat_counter <=0){
+               cout <<clientList[i].name <<"离线"<<endl;
+               user_offline(i);
+           } 
+        }
+    
+    //cout <<"!!!!!!!!!!!!!!!!!!!!!!!!!!!1server beat "<<endl;
+    
+}
 
 void Server::initClientSetup()
 {
@@ -124,13 +155,30 @@ void Server::removeLogin (vector<loginAction>::iterator i)
     cout <<"erase ok !\n";
 }
 
+int Server::logGame(const char * msg_type , int index)
+{
+    int gid = clientList[index].gameId ;
+    if ( gid < 0)
+        return -1 ;
+    int oppo_index = (gameList[gid].index1 == index )? gameList[gid].index2 :gameList[gid].index1;
+
+    mylog._writeDataTransform(msg_type ,clientList[index].sockaddr,clientList[oppo_index].sockaddr,
+                            clientList[index].name.c_str(),clientList[index].name.c_str());
+
+    return 1 ;
+}
 
 // 先 remove game  ，再 关闭连接
 // id 判断胜负 id是谁谁就输
-void Server::removeGame( int gid , int id )
+// 不设 id ， 则判正负
+void Server::removeGame( int gid , int id ,bool surrender )
 {
     if (gid <0)
         return ;
+
+    if (id >=0)
+        cout <<"删除游戏"<<gid <<' '<<clientList[id].name<<' ' <<surrender<<endl;
+    
     cout << "remove game "<<endl;
     auto iter = gameList.begin() + gid ;
 
@@ -138,7 +186,7 @@ void Server::removeGame( int gid , int id )
     cout <<"start remove game gid = "<<gid <<endl;
 
     // 如果未准备好 ， 则告知双方下线
-    if(! iter->ready ){
+    if( iter->board1 ==NULL || iter->board2 ==NULL ){
         if (id != iter->index1)
             sndResponse(clientList[iter->index1].cfd,mt::resConnect,sbt::deny);
         if (id != iter->index2)
@@ -147,8 +195,17 @@ void Server::removeGame( int gid , int id )
     else // 如果已经准备好，即已经进入游戏，则当前turn的人判输 或主动投降的人输
     {
         if (id >=0){
-            sndResponse(clientList[iter->index1].cfd,mt::resPlay,iter->index1==id?sbt::lose:sbt::win);
-            sndResponse(clientList[iter->index2].cfd,mt::resPlay,iter->index2==id?sbt::lose:sbt::win);
+
+             int oppo_index = (gameList[gid].index1 == id )? iter->index2 :iter->index1;
+            // 主动认输
+            if (surrender){
+                sndResponse(clientList[oppo_index].cfd,mt::resPlay,sbt::surrender);
+            }
+            // 掉线
+            else {
+                sndResponse(clientList[oppo_index].cfd,mt::resPlay,sbt::idOffline);
+            //    sndResponse(clientList[iter->index2].cfd,mt::resPlay,iter->index2==id?sbt::lose:sbt::win);
+            }
         }
         else {
             sndResponse(clientList[iter->index1].cfd,mt::resPlay,iter->turn?sbt::lose:sbt::win);
@@ -185,15 +242,20 @@ void Server::removeGame( int gid , int id )
 // 完成游戏的轮转 , 并判断是否游戏结束
 void Server::gameTurn(int gid )
 {
+    cout <<"游戏轮转"<<endl;
     gameList[gid].turn = !gameList[gid].turn;
     auto iter = gameList.begin() + gid ; 
 
 
-    if (gameList[gid].board1->getnum() == 0 || gameList[gid].board2->getnum() == 0)
+    cout <<"双方飞机"<<' ' << iter->board1->getnum() <<' '<<iter->board2->getnum()<<endl;
+
+    if (iter->board1->getnum() == 0 || iter->board2->getnum() == 0)
     {    
+        cout <<"胜负已分"<<endl;
         removeGame(gid);
         return ;
     }
+
     if ( iter->turn){
         sndResponse(clientList[iter->index1].cfd , mt::askGame , sbt::turn);
         sndResponse(clientList[iter->index2].cfd , mt::askGame , sbt::wait);
@@ -232,6 +294,7 @@ void Server::user_online ( int cfdindex )
     clientList[index].cfd = cfd ;
     clientList[index].sockaddr = i->sockaddr;
     clientList[index].status = cstate::online;
+    clientList[index].beat_counter = 3 ;
     tell_client_update (index);
     string name = clientList[index].name ;
     loginList.erase(i);
@@ -336,6 +399,7 @@ void Server::user_leave( int index )
 
 void Server::user_offline( int index )
 {
+    cout <<"用户下线"<<endl;
     if (clientList[index].gameId !=-1)
         removeGame(clientList[index].gameId,index);
 
@@ -362,6 +426,11 @@ void Server::solveLogin(int index )
         return ;
     }
 
+    if (p.isMainType(mt::beat)){
+        cout <<"login beat"<<endl;
+        loginList[index].beat_counter = BEATMAXNUM ;
+        return ;
+    }
     //  如果不是login类型  则错误
     if(!p.isMainType(mt::login))
     {
@@ -419,7 +488,7 @@ void Server::solveLogin(int index )
                 // debug
                 cout << i->username <<"重复登录"<<endl;
                 mylog._writeLogin( "login-repeat-off" , clientList[i->index].sockaddr , i->username.c_str());
-                sndResponse(clientList[i->index].cfd , mt::login , sbt::repeatoff);
+                sndResponse(clientList[i->index].cfd , mt::resLogin , sbt::repeatoff);
                 close_cfd (clientList[i->index].cfd);
                 clientList[i->index].cfd = -1 ;
 
@@ -472,7 +541,6 @@ void Server::solveLogin(int index )
 
 void Server::solveMsg(const int index )
 {
-
     Packet srcPacket , desPacket ;
     
     int cfd = clientList[index].cfd;
@@ -483,6 +551,11 @@ void Server::solveMsg(const int index )
         return ;
     }
 
+    if (srcPacket.isMainType(mt::beat)){
+        //cout <<clientList[index].name<<" beat"<<endl;
+        clientList[index].beat_counter = BEATMAXNUM ;
+        return ;
+    }
 
     // we nben xiao xi qun fa
     if(srcPacket.isGroupSnd() || srcPacket.isType(mt::sndTxt , sbt::groupChat))
@@ -667,6 +740,7 @@ void Server::solveMsg(const int index )
         }
 
         else if (srcPacket.isSubType(sbt::deny)){
+            cout << "挑战者拒绝"<<endl;
             int gid = clientList[index].gameId;
             int oppo_index = gameList[gid].index2 ;
             removeGame(gid,index);
@@ -708,7 +782,7 @@ void Server::solveMsg(const int index )
             sndResponse(clientList[oppo_index].cfd, mt::resConnect, sbt::accept);
         }
         else if (srcPacket.isSubType(sbt::deny)){
-
+            cout <<"被挑战者拒绝"<<endl;
             removeGame(clientList[index].gameId,index);
             //sndResponse(clientList[oppo_index].cfd, mt::resConnect, sbt::deny);
         }
@@ -755,15 +829,35 @@ void Server::solveMsg(const int index )
     
     }
 
-    // TODO
     else if (srcPacket.isMainType(mt::play)){
+
+        cout << "对战信息"<<(int)srcPacket.header.subType<<endl;
 
 
         bool flag = true ;
         int gid = clientList[index].gameId ; 
 
-        if(gid <0 || !gameList[gid].ready )
+
+        if(gid <0 || gameList[gid].board1==NULL || gameList[gid].board2 ==NULL )
             return ;
+
+        if (srcPacket.isSubType(sbt::surrender)){
+            cout <<clientList[index].name<<"主动认输"<<endl;
+            removeGame(gid,index,true);
+            return ;
+        }
+
+        // 如果未准备好
+        if (!gameList[gid].ready)
+            return ;
+
+        if ( gameList[gid].turn !=(gameList[gid].index1 == index))
+        {
+            cout <<"回合抢占，忽略"<<endl;
+            return ;
+        }
+
+        int oppo_index = (gameList[gid].index1 == index )? gameList[gid].index2 :gameList[gid].index1;
 
         // 猜棋子
         if (srcPacket.isSubType(sbt::unmask)){
@@ -777,11 +871,16 @@ void Server::solveMsg(const int index )
             msg.y = y ;
             msg.result = clientList[index].oppo_board->unmask(Pt(x,y));
 
-            desPacket.fillPacket(mt::resPlay,sbt::unmask,&msg , sizeof(msg));
+            cout <<"猜棋子"<<x<<" "<<y<<' '<<int(msg.result)<<endl;
 
+            desPacket.fillPacket(mt::resPlay,sbt::unmask,&msg , sizeof(msg));
             serverSend(clientList[index].cfd, desPacket);
+            desPacket.header.mainType = mt::play;
+            serverSend(clientList[oppo_index].cfd,desPacket);            
+
 
         }
+
         // 猜飞机位置
         else if (srcPacket.isSubType(sbt::locate)){
 
@@ -798,10 +897,14 @@ void Server::solveMsg(const int index )
             msg.y2 = y2 ;
             msg.result = clientList[index].oppo_board->unmaskPlane(Pt(x1,y1),Pt(x2,y2));
            
-            desPacket.fillPacket(mt::resPlay,sbt::locate,&msg,sizeof(msg));
+            cout <<"猜飞机"<<x1 <<' '<<y1 <<' '<<x2<<' '<<y2<<' '<<msg.result<<endl;
 
+            desPacket.fillPacket(mt::resPlay,sbt::locate,&msg,sizeof(msg));
             serverSend(clientList[index].cfd,desPacket);
+            desPacket.header.mainType = mt::play;
+            serverSend(clientList[oppo_index].cfd , desPacket);            
         }
+
 
         else 
             return ;
@@ -901,8 +1004,9 @@ void Server::run()
 
     fd_set rfd_cpy , wfd_cpy ;
 
+    setTime(wait_time, 1,0);    
     while (true) {
-        setTime(wait_time, 1,0);
+        //setTime(wait_time, 1,0);
         rfd_cpy = read_fds;
         wfd_cpy = write_fds ;
 
@@ -915,6 +1019,8 @@ void Server::run()
                 break;
             case 0:
                 //cerr<<"select time out !\n";
+                shootBeat();
+                setTime(wait_time, 1,0);
                 break;
             default:
 
@@ -941,7 +1047,7 @@ void Server::run()
                         continue ;
                     else 
                     {
-                        cout <<"slove msg "<< loginList[i].cfd << endl ;
+                        //cout <<"slove msg "<<clientList[i].name <<' '<< clientList[i].cfd << endl ;
                         solveMsg(i);
                     }
         }
@@ -988,7 +1094,9 @@ int Server::sndResponse(int cfd , unsigned char maintype ,unsigned char subtype 
 	fillPacketHeader(p.header,maintype, subtype, len );
 
 
-	return socketSend(cfd , p);
+    return serverSend(cfd,p);
+    //NEAD TEST
+	//return socketSend(cfd , p);
 }
 
 

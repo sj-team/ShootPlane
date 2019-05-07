@@ -143,17 +143,15 @@ bool ChessBoard::unmaskPlane(const Pt & p1 ,const Pt& p2){
 
 bool ChessBoard::setPlane(const Pt & p1, const Pt & p2) {
 
-	cout << "444" << endl;
 	if (!p1.legal() || !p2.legal())
 		return false;
-	cout << "333" << endl;
+
 	if (plane_pos.size() >= g_plane_num)
 		return false;
 
-	cout << "111" << endl;
 	if (!(p1.x == p2.x && abs(p1.y - p2.y) == 3 || p1.y == p2.y && abs(p1.x - p2.x) == 3))
 		return false;
-	cout << "222" << endl;
+
 	bool legal = true;
 
 	int direction;

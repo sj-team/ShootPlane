@@ -14,7 +14,6 @@ using namespace std;
 #define DBNAME "db1651025"
 
 //写了大部分之后发现sprintf比strcat更好写，先不改
-
 SERVER_MYSQL::SERVER_MYSQL(){
    if ((mysql = mysql_init(NULL))==NULL) {  //初始化错误
     	cout << "mysql_init failed" << endl;  

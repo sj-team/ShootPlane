@@ -20,6 +20,15 @@ Grammar has not been verified. -->
 
 # 报文设计
 
+## **心跳包**
+行为|maintype|subtype|
+---|:--:|---:
+client向server发心跳包|0xff(beat)|0x00(无)
+server向client发心跳包|0xff(beat)|0x00(无)
+
+#### 报文信息(心跳包)
+无
+
 ## **client登录**
 行为|maintype|subtype|
 ---|:--:|---:
@@ -145,6 +154,7 @@ Grammar has not been verified. -->
 ---|:--:|---:
 猜点|0x32(play)|0x02(unmask)
 猜飞机位置|0x32(play)|0x01(locate)
+认输|0x32(play)|0xf0(surrender)
 反馈猜点（server反馈）|0x42(resPlay)|0x02(unmask)
 反馈猜位置（server反馈）|0x42(resPlay)|0x01(locate)
 反馈输（server反馈）|0x42(resPlay)|0x03(win)

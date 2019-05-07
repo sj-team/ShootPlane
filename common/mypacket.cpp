@@ -83,7 +83,10 @@ int socketRecv(int cfd , Packet & packet)
 				cerr << "select error " << endl;
 				return -1;
 			case 0:
-				cerr << "recv timeOut error" << endl;
+				cerr << "recv timeOut error , recv_cur is "<<totalLen << endl;
+				if (totalLen >=HEADERLEN){
+					cout << (int)packet.header.mainType<<' '<<(int)packet.header.subType<<' '<<getPacketLen(packet)<<endl;
+				}
 				return -1;
 			default:
 				recvNum = recv(cfd, buff + totalLen, msgLen - totalLen, 0);

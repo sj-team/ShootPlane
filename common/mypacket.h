@@ -43,6 +43,7 @@ namespace cstate
 
  namespace mt
  {
+	const unsigned char beat = 0xff;
 	 // client  send 
 	const unsigned char login = 0x11;
 	const unsigned char sndFileHead = 0x12 ;
@@ -119,6 +120,7 @@ namespace sbt
 	const unsigned char unmask = 0x02;
 	const unsigned char win = 0x03 ;
 	const unsigned char lose = 0x04;
+	const unsigned char surrender = 0xf0;
 
 
 };
@@ -130,6 +132,7 @@ struct packetHeader{
 	unsigned char mainType ;
 	unsigned char subType ;
 	unsigned short length;
+
 };
 
 struct TxtData
@@ -207,6 +210,13 @@ struct Packet{
 	packetHeader header ;
 	char msg[MAXDATALEN+1024];
 
+	Packet (){
+
+	}
+	Packet (unsigned char _mt , unsigned char _sbt , unsigned short len){
+		fillPacketHeader(header,mt::beat , 0 , 0);
+	}
+
 	bool isMainType( unsigned char maintp)
 	{
 		return header.mainType == maintp ;
@@ -250,7 +260,8 @@ struct ClientInfo{
     string name;
     unsigned char status ;
     int gameId ; 
-    sockaddr_in sockaddr ; 
+    int beat_counter ;
+	sockaddr_in sockaddr ; 
     ChessBoard *my_board , *oppo_board ; 
 
 
@@ -259,6 +270,7 @@ struct ClientInfo{
         name = _name ;
         cfd = _cfd;
         gameId = -1;
+		beat_counter = 3 ;
         my_board = oppo_board = NULL ;
         status = cstate::offline ;
         offlinePacks.clear();
@@ -271,6 +283,7 @@ struct loginAction
 {
     int cfd ; 
     int index ; 
+	int beat_counter ; 
     string username ;
     sockaddr_in sockaddr ; 
     unsigned char state ;
@@ -280,7 +293,7 @@ struct loginAction
         cfd = _cfd;
         sockaddr = _sockaddr ;
         state = sbt::request;
-
+		beat_counter = 3 ;
     }
 };
 
@@ -288,7 +301,7 @@ struct gameInfo {
     
 //    int gameId ; 
     // 表示双方已经进入正常游戏界面
-	// 已经完成了对局的建立和飞机的摆放
+	// 已经完成了对局的建立
 	bool ready ; 
 
 	// turn is true , then index1's turn 

@@ -13,10 +13,12 @@
 
 #define MAX_CONNECT 1000
 #define MAX_LISTEN 1000
+#define BEATMAXNUM 3 
 const bool flag_block = true;
 
-using namespace std ;
 
+
+using namespace std ;
 
 
 class Server 
@@ -27,6 +29,8 @@ private :
     fd_set read_fds, write_fds;
 
     int senderIndex ;
+
+    const Packet beatPacket ;
 
     vector<ClientInfo> clientList;
 
@@ -44,6 +48,9 @@ private :
 
     XmlLog  mylog ; 
 
+
+
+    int logGame(const char * msg_type , int index );
 
     bool newConnect ();
 
@@ -87,12 +94,14 @@ private :
 
     void user_leave( int index );
 
-    void removeGame( int gid ,int id = -1);
+    void removeGame( int gid ,int id = -1 , bool surrender = false);
 
     //void endGame( int gid , bool turn);
 
     // tell user wait or play
     void gameTurn(int gid );
+
+    void shootBeat();
 
   public:
 
