@@ -199,7 +199,7 @@ void GameGui::on_pushButton_clicked()
         p.msg[2]=text[3]-'A';
         p.msg[3]=text[4]-'0';
     }
-    socketManagerW->send_data(&p,HEADERLEN+p.getLen());
+    socketManagerW->send_data(&p,p.getLen());
 }
 
 
