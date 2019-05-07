@@ -78,6 +78,15 @@ void MyTableWidget::cellClicked(int row,int column)
 
     if(isGame)
     {
+        for(int i=0;i<10;i++)
+        {
+            //检查是否存在飞机冲突
+            if(map[cur_airdata[i][0]][cur_airdata[i][1]]%10 != 0)
+            {
+                return ;
+            }
+        }
+
         clearAirCraft(cur_str);
         getAircraft(row,column,cur_oriented);
         showPlane();
@@ -155,6 +164,7 @@ void MyTableWidget::airHover(int row, int col)
         // qDebug()<<"cur_airdata"<<cur_airdata[i][0]<<cur_airdata[i][1];
         pre_airdata[i][0]=cur_airdata[i][0];
         pre_airdata[i][1]=cur_airdata[i][1];
+       // myhover[i]=item(cur_airdata[i][0],cur_airdata[i][1])->backgroundColor();
         item(cur_airdata[i][0],cur_airdata[i][1])->setBackgroundColor(hovered);
     }
 
@@ -316,7 +326,7 @@ void MyTableWidget::clearAirCraft(QString str)
         }
     }
 
-    item(cur_airdata[0][0],cur_airdata[0][1])->setText("");
+    //item(cur_airdata[0][0],cur_airdata[0][1])->setText("");
 
 }
 
@@ -327,7 +337,7 @@ void MyTableWidget::showPlane()
         for(int i=0;i<10;i++)
         {
            // qDebug()<<"cur_airdata"<<cur_airdata[i][0]<<cur_airdata[i][1];
-            map[cur_airdata[i][0]][cur_airdata[i][1]] += choosed;
+           map[cur_airdata[i][0]][cur_airdata[i][1]] += choosed;
             item(cur_airdata[i][0],cur_airdata[i][1])->setBackgroundColor(airColor[1]);
         }
     }
@@ -343,9 +353,6 @@ void MyTableWidget::showPlane()
     }
 
 
-//    item(cur_airdata[0][0],cur_airdata[0][1])->setText(QString::number(num)+"#");
-//    item(cur_airdata[0][0],cur_airdata[0][1])->setTextAlignment(Qt::AlignCenter);
-
     cur_str = QString('A'+cur_airdata[0][0])+QString::number(cur_airdata[0][1])+
             '-'+QString('A'+cur_airdata[8][0])+QString::number(cur_airdata[8][1]);
     //qDebug()<<"table"<<str;
@@ -355,6 +362,7 @@ void MyTableWidget::showPlane()
 
 void MyTableWidget::setPlane(QString str)
 {
+    static int graynum = 0;
     const char *p=str.toLocal8Bit().data();
 
     int x1 = p[0]-'A';
@@ -379,6 +387,34 @@ void MyTableWidget::setPlane(QString str)
             getAircraft(x1,y1,orient(Down));
     }
 
+    for(int i=0;i<10;i++)
+    {
+        item(cur_airdata[i][0],cur_airdata[i][1])->setBackgroundColor(myGray[graynum]);
+    }
+    graynum++;
+
+    //showPlane();
+}
+
+void MyTableWidget::setPlane(int x1,int y1,int x2,int y2)
+{
+    if(x1==x2)
+    {
+        if(y1==y2)
+            getAircraft(x1,y1,orient(None));
+        else if(y1<y2)
+            getAircraft(x1,y1,orient(Left));
+        else
+            getAircraft(x1,y1,orient(Right));
+    }
+    else
+    {
+        if(x1<x2)
+            getAircraft(x1,y1,orient(Up));
+        else
+            getAircraft(x1,y1,orient(Down));
+    }
+
     showPlane();
 }
 
@@ -386,17 +422,20 @@ void MyTableWidget::setPoint(int x, int y, const uchar status)
 {
     if(status == bs::empty)
     {
+        map[x][y]=4;
         item(x,y)->setBackgroundColor(miss);
     }
     else if(status == bs::head)
     {
-        item(x,y)->setBackgroundColor(head);
-        //item(x,y)->setText("○");
-        //item(x,y)->setFont(QFont("Microsoft YaHei Light",16));
+        item(x,y)->setText("○");
+        item(x,y)->setFont(QFont("Microsoft YaHei Light",18));
+        item(x,y)->setTextAlignment(Qt::AlignCenter);
     }
     else if(status == bs::body)
     {
-        item(x,y)->setBackgroundColor(body);
+        item(x,y)->setText("×");
+        item(x,y)->setFont(QFont("Microsoft YaHei Light",18));
+        item(x,y)->setTextAlignment(Qt::AlignCenter);
     }
 
 }

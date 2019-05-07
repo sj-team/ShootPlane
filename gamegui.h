@@ -32,10 +32,27 @@ public:
     void mouseMoveEvent(QMouseEvent *event);
     //最小化及关闭
     bool eventFilter(QObject *object, QEvent *e);
+    //放置初始飞机，用于显示对方游戏进度
+    void setInitPlane(QString str);
+    //放置一架飞机（在游戏中，只有猜测一架飞机并猜中之后才显示）
+    void setPlane(bool isMyGuessResult, int x1, int y1, int x2,int y2);
+    //放置一个点（未命中，击中机头，击中机身）
+    void setPoint(bool isMyGuessResult, int x,int y,const uchar status);
 
-    void setPlane(QString str);
+    //设置标题
+    void setTitle(QString str);
 
-    void setPoint(int x,int y,int status);
+    //设置用户名
+    void setUserName(QString str);
+
+    //设置对手名
+    void setOpName(QString str);
+
+    //设置当前操作者
+    void setCurOprator(QString str);
+
+    //设置当前状态
+    void setStatus(QString str);
 
 private slots:
 
@@ -50,6 +67,12 @@ private slots:
     void on_radioButton_toggled(bool checked);
 
     void showText(QString str);
+
+    void on_pushButton_clicked();
+
+    void on_tableWidget_itemSelectionChanged();
+
+    void on_pushButton_sur_clicked();
 
 private:
     Ui::GameGui *ui;

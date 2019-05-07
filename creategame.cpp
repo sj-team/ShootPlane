@@ -66,11 +66,12 @@ bool CreateGame::eventFilter(QObject *object, QEvent *e)
         socketManagerW->myChangePwd=nullptr;
         //send exit
         socketManagerW->return_friendlist();
-
-
-
-
-         close();
+        //surrender
+        packetHeader ph;
+        qDebug()<<"surrender";
+        fillPacketHeader(ph,mt::play,sbt::surrender,0);
+        socketManagerW->send_data(&ph,HEADERLEN);
+        close();
     }
     else if(e->type()==QEvent::MouseButtonPress&&object==ui->label_min){
         showMinimized();
@@ -147,6 +148,10 @@ void CreateGame::on_pushButton_send_clicked()
     close();
     socketManagerW->myFriendList->setEnabled(false);
     socketManagerW->myGameGui=new GameGui;
+
+    socketManagerW->myGameGui->setInitPlane(aircraft1);
+    socketManagerW->myGameGui->setInitPlane(aircraft2);
+    socketManagerW->myGameGui->setInitPlane(aircraft3);
     socketManagerW->myGameGui->show();
 }
 
@@ -213,4 +218,9 @@ void CreateGame::showAirText(QString str)
         return;
     }
 
+}
+
+void CreateGame::setTitle(QString str)
+{
+    ui->label_title->setText(str);
 }

@@ -131,7 +131,7 @@ QLabel:hover{
        <x>10</x>
        <y>10</y>
        <width>261</width>
-       <height>201</height>
+       <height>121</height>
       </rect>
      </property>
      <layout class="QFormLayout" name="formLayout">
@@ -328,6 +328,27 @@ border-radius:2px;
       </item>
      </layout>
     </widget>
+    <widget class="QPushButton" name="pushButton_sur">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>150</y>
+       <width>181</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{
+font: 25 12pt &quot;微软雅黑 Light&quot;;
+  background-color:rgb(85, 170, 255);
+color:white;
+border-radius: 4px;
+}</string>
+     </property>
+     <property name="text">
+      <string>投降</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
@@ -466,9 +487,9 @@ color: rgb(0, 0, 0)</string>
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>40</y>
+       <y>30</y>
        <width>361</width>
-       <height>101</height>
+       <height>111</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
@@ -625,6 +646,24 @@ color: rgb(0, 0, 0)</string>
       <string>对手</string>
      </property>
     </widget>
+   </widget>
+   <widget class="QLabel" name="label_title">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>0</y>
+      <width>261</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">
+font: 25 16pt &quot;微软雅黑 Light&quot;;
+color: rgb(0, 0, 0)</string>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
+    </property>
    </widget>
   </widget>
  </widget>

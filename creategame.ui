@@ -353,6 +353,24 @@ font: 25 9pt &quot;微软雅黑 Light&quot;;</string>
      </layout>
     </widget>
    </widget>
+   <widget class="QLabel" name="label_title">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>10</y>
+      <width>261</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">
+font: 25 16pt &quot;微软雅黑 Light&quot;;
+color: rgb(0, 0, 0)</string>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <customwidgets>

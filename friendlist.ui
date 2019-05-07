@@ -172,7 +172,7 @@ QLabel:hover{
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="lineEdit_4">
+       <widget class="QLineEdit" name="lineEdit_userName">
         <property name="font">
          <font>
           <family>微软雅黑</family>
@@ -222,7 +222,7 @@ QLabel:hover{
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="lineEdit">
+       <widget class="QLineEdit" name="lineEdit_lastLoginTime">
         <property name="font">
          <font>
           <family>微软雅黑</family>
@@ -272,7 +272,7 @@ QLabel:hover{
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QLineEdit" name="lineEdit_3">
+       <widget class="QLineEdit" name="lineEdit_currentOnlineTime">
         <property name="font">
          <font>
           <family>微软雅黑</family>
@@ -322,7 +322,7 @@ QLabel:hover{
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QLineEdit" name="lineEdit_2">
+       <widget class="QLineEdit" name="lineEdit_ipAddress">
         <property name="font">
          <font>
           <family>微软雅黑</family>
@@ -372,7 +372,7 @@ QLabel:hover{
        </widget>
       </item>
       <item row="4" column="1">
-       <widget class="QLineEdit" name="lineEdit_5">
+       <widget class="QLineEdit" name="lineEdit_port">
         <property name="font">
          <font>
           <family>微软雅黑</family>
@@ -422,7 +422,7 @@ QLabel:hover{
        </widget>
       </item>
       <item row="5" column="1">
-       <widget class="QLineEdit" name="lineEdit_6">
+       <widget class="QLineEdit" name="lineEdit_status">
         <property name="font">
          <font>
           <family>微软雅黑</family>

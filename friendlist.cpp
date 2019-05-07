@@ -78,6 +78,8 @@ void FriendList::mouseMoveEvent(QMouseEvent *event)
 
 bool FriendList::eventFilter(QObject *object, QEvent *e)
 {
+    if(this->isEnabled()==false)
+        return false;
     if(e->type()==QEvent::MouseButtonPress&&object==ui->label_close)
     {
         socketManagerW->myFriendList=nullptr;
@@ -134,6 +136,7 @@ void FriendList::testend(){
     }
 }
 void FriendList::solve_recv_newgame(QString name){
+    socketManagerW->op_name=name;
    socketManagerW->recvMessage =new QMessageBox("new game",QString(name)+" 向你发起对战，是否接受？",QMessageBox::Icon::Question,QMessageBox::StandardButton::Yes,QMessageBox::StandardButton::No,QMessageBox::StandardButton::NoButton);
     //myFriendList->setEnabled(false);
     int res=socketManagerW->recvMessage->exec();
@@ -172,6 +175,7 @@ void FriendList::on_listWidget_itemDoubleClicked(QListWidgetItem* item)
     }
     qDebug()<<"send msg to usr"<<item->text();
     Packet p;
+    socketManagerW->op_name=item->text();
     std::string temp_str=item->text().toStdString();
     strcpy(p.msg,temp_str.c_str());
     fillPacketHeader(p.header,mt::connect,sbt::request,MAXNAMELEN);
@@ -194,3 +198,34 @@ void FriendList::on_listWidget_itemDoubleClicked(QListWidgetItem* item)
     }
 
 }
+
+void FriendList::setUserName(QString str)
+{
+    ui->lineEdit_userName->setText(str);
+}
+
+void FriendList::setLastLoginTime(QString str)
+{
+    ui->lineEdit_lastLoginTime->setText(str);
+}
+
+void FriendList::setCurrentOnlineTime(QString str)
+{
+    ui->lineEdit_currentOnlineTime->setText(str);
+}
+
+void FriendList::setIpAddress(QString str)
+{
+    ui->lineEdit_ipAddress->setText(str);
+}
+
+void FriendList::setPort(QString str)
+{
+    ui->lineEdit_port->setText(str);
+}
+
+void FriendList::setStatus(QString str)
+{
+    ui->lineEdit_status->setText(str);
+}
+

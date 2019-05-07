@@ -21,6 +21,7 @@ class Login : public QMainWindow
     Q_OBJECT
 
 public:
+
     explicit Login(QWidget *parent = nullptr);
     ~Login();
     QPoint move_point; //移动的距离

@@ -51,8 +51,9 @@ public:
     //显示一架飞机并保存到map
     void showPlane();
 
-    //设置显示一架飞机（用于游戏中看对方进度）
+    //设置显示一架飞机（用于游戏中看对方进度和自己进度）
     void setPlane(QString str);
+    void setPlane(int x1,int y1,int x2,int y2);
 
     //设置一个点的显示
     void setPoint(int x,int y,const uchar status);
@@ -66,6 +67,7 @@ protected:
 public slots:
     void cellEntered(int,int);//鼠标移动事件，返回item的行和列号
     void cellClicked(int,int);
+
 
 private:
     //是否可修改（用于区分对方、自己游戏）
@@ -94,13 +96,17 @@ private:
 
     QColor airColor[3] = {QColor(225,108,150),QColor(140,194,105),QColor(33,119,184)};
 
+    QColor myGray[3]={QColor(177,177,177),QColor(222,222,222),QColor(157,157,157)};
+
     //背景颜色
     QColor bg = QColor(255,255,255);
 
     //猜测后返回的颜色，随机写的，要改
-    QColor miss = QColor(145,103,76);
+    QColor miss = QColor(0,0,0);
     QColor head = QColor(54,203,87);
     QColor body = QColor(77,99,123);
+
+    //QColor myhover[10];
 
     QString cur_str;
 
