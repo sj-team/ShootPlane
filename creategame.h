@@ -35,6 +35,9 @@ public:
     //最小化及关闭
     bool eventFilter(QObject *object, QEvent *e);
 
+    //设置标题
+    void setTitle(QString str);
+
 
 
 

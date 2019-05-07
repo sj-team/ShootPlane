@@ -218,3 +218,8 @@ void CreateGame::showAirText(QString str)
     }
 
 }
+
+void CreateGame::setTitle(QString str)
+{
+    ui->label_title->setText(str);
+}

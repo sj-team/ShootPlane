@@ -39,6 +39,9 @@ public:
     //放置一个点（未命中，击中机头，击中机身）
     void setPoint(bool isMyGuessResult, int x,int y,const uchar status);
 
+    //设置标题
+    void setTitle(QString str);
+
 private slots:
 
     void on_radioButton_down_toggled(bool checked);

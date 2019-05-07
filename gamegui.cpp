@@ -181,3 +181,13 @@ void GameGui::on_tableWidget_itemSelectionChanged()
 {
     ui->tableWidget->clearSelection ();
 }
+
+void GameGui::setTitle(QString str)
+{
+    ui->label_title->setText(str);
+}
+
+void GameGui::on_pushButton_sur_clicked()
+{
+    //投降按钮
+}
