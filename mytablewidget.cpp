@@ -415,7 +415,15 @@ void MyTableWidget::setPlane(int x1,int y1,int x2,int y2)
             getAircraft(x1,y1,orient(Down));
     }
 
-    showPlane();
+//    showPlane();
+
+    num++;
+    for(int i=0;i<10;i++)
+    {
+       // qDebug()<<"cur_airdata"<<cur_airdata[i][0]<<cur_airdata[i][1];
+        map[cur_airdata[i][0]][cur_airdata[i][1]] = num;
+        item(cur_airdata[i][0],cur_airdata[i][1])->setBackgroundColor(airColor[num-1]);
+    }
 }
 
 void MyTableWidget::setPoint(int x, int y, const uchar status)
