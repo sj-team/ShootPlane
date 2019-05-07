@@ -30,7 +30,9 @@ socketManager::socketManager(QObject *parent):QObject(parent){
     myGameGui=nullptr;
     startRequestWaiting=new QMessageBox(QMessageBox::Icon::Information,"waiting","等待对方回应...",QMessageBox::StandardButton::Cancel);
     hintMessage_s=nullptr;
-    //connect(this, SIGNAL(signal_new_game(char*)), this->myFriendList, SLOT(solve_recv_newgame(char*)));
+    connect(this, SIGNAL(signal_surrender()), this, SLOT(slot_surrender()),Qt::QueuedConnection);
+    connect(this, SIGNAL(signal_win()), this, SLOT(slot_win()),Qt::QueuedConnection);
+    connect(this, SIGNAL(signal_lose()), this, SLOT(slot_lose()),Qt::QueuedConnection);
 }
 socketManager::~socketManager()
 {
@@ -70,6 +72,7 @@ void socketManager::login_success(){
     packetHeader successHeader;
     fillPacketHeader(successHeader,mt::login,sbt::success,0);
     send_data(&successHeader,sizeof successHeader);
+    name=topLogin->getUserName();
     topLogin->close();
     myFriendList = new FriendList;
     myFriendList->show();
@@ -132,17 +135,72 @@ void socketManager::solve_connect_success(){
 
     }
 }
+void socketManager::end_game(){
+    if(myCreateGame!=nullptr){
+        myCreateGame->close();
+        myCreateGame=nullptr;
+    }
+    if(myGameGui!=nullptr){
+        myGameGui->close();
+        myGameGui=nullptr;
+    }
+    myFriendList->setEnabled(true);
+}
+void socketManager::slot_surrender(){
+    qDebug()<<"对方退出游戏";
+    QMessageBox::warning(nullptr,"warining","对方退出了游戏！");
+    end_game();
+}
+void socketManager::slot_win(){
+    qDebug()<<"胜利";
+    QMessageBox::warning(nullptr,"warining","胜利！");
+    end_game();
+}
+void socketManager::slot_lose(){
+    qDebug()<<"胜利";
+    QMessageBox::warning(nullptr,"warining","失败！");
+    end_game();
+}
+
 
 void socketManager::solve_start_locate(){
     myFriendList->setEnabled(false);
     if(myCreateGame==nullptr){
         myCreateGame=new CreateGame;
+        game_name=name + " VS " + op_name;
+        myCreateGame->setTitle(game_name);
         myCreateGame->show();
     }
 
 }
 void socketManager::return_friendlist(){//返回列表界面
     myFriendList->setEnabled(true);
+}
+void socketManager::solve_play_locate(Packet *p){
+    unmaskLocateResult *resPtr=(unmaskLocateResult *)p->msg;
+    if(resPtr->result){
+        myGameGui->setPlane(0,resPtr->x1,resPtr->y1,resPtr->x2,resPtr->y2);
+    }
+    else {
+        myGameGui->appendGameLog(0,resPtr->x1,resPtr->y1,resPtr->x2,resPtr->y2,0);
+    }
+}
+void socketManager::solve_resPlay_locate(Packet *p){
+    unmaskLocateResult *resPtr=(unmaskLocateResult *)p->msg;
+    if(resPtr->result){
+        myGameGui->setPlane(1,resPtr->x1,resPtr->y1,resPtr->x2,resPtr->y2);
+    }
+    else {
+        myGameGui->appendGameLog(1,resPtr->x1,resPtr->y1,resPtr->x2,resPtr->y2,0);
+    }
+}
+void socketManager::solve_play_unmask(Packet *p){
+    unmaskPointResult *resPtr=(unmaskPointResult *)p->msg;
+    myGameGui->setPoint(0,resPtr->x,resPtr->y,resPtr->result);
+}
+void socketManager::solve_resPlay_unmask(Packet *p){
+    unmaskPointResult *resPtr=(unmaskPointResult *)p->msg;
+    myGameGui->setPoint(1,resPtr->x,resPtr->y,resPtr->result);
 }
 void socketManager::solve_packet(Packet *myPacket){
     qDebug()<<int(myPacket->header.mainType)<<"   "<<int(myPacket->header.subType);
@@ -159,7 +217,7 @@ void socketManager::solve_packet(Packet *myPacket){
                     hintMessage= new QMessageBox(QMessageBox::Icon::Warning,"warning","密码错误");
                     break;
                 case sbt::repeaton:
-                    //break;
+                    hintMessage= new QMessageBox(QMessageBox::Icon::Warning,"warning","重复上线");
                     ;
                 case sbt::success:
                     login_success();
@@ -243,10 +301,49 @@ void socketManager::solve_packet(Packet *myPacket){
                     solve_start_locate();
                     break;
                 case sbt::turn:
-                    //solve_friendlist(myPacket->msg);
+                    myGameGui->setStatus("你的回合");
                     break;
                 case sbt::wait:
-                    //solve_friendlist(myPacket->msg);
+                    myGameGui->setStatus("对方回合");
+                    break;
+                default:
+                    break;
+            }
+            break;
+        }
+        case mt::play:{
+            switch(myPacket->header.subType){
+                case sbt::locate:
+                    solve_play_locate(myPacket);
+                    break;
+                case sbt::unmask:
+                    solve_play_unmask(myPacket);
+                    break;
+                default:
+                    break;
+            }
+            break;
+        }
+        case mt::resPlay:{
+            switch(myPacket->header.subType){
+                case sbt::win:
+                    emit signal_win();
+                    break;
+                case sbt::surrender:
+                    qDebug()<<"recv surrender";
+                    emit signal_surrender();
+                    break;
+                case sbt::lose:
+                    emit signal_lose();
+                    break;
+                case sbt::idOffline:
+                    emit signal_surrender();
+                    break;
+                case sbt::locate:
+                    solve_resPlay_locate(myPacket);
+                    break;
+                case sbt::unmask:
+                    solve_resPlay_unmask(myPacket);
                     break;
                 default:
                     break;

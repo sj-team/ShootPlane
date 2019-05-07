@@ -22,12 +22,18 @@ GameGui::GameGui(QWidget *parent) :
     ui->tableWidget->setisGame(true);
 
     ui->tableWidget_2->setisGame(false);
-
-
+    setUserName(socketManagerW->name);
+    setOpName(socketManagerW->op_name);
+    setTitle(socketManagerW->game_name);
+    setStatus("等待中");
     //此处要修改为creategame中的三个坐标
 //    QString tmp_str[3]={"B2-E2","D4-D7","G5-G2"};
 //    for(int i=0;i<3;i++)
+//    {
+
 //        setInitPlane(tmp_str[i]);
+//        setPlane(true,1,2,4,2);
+//    }
 
 //    setPoint(true,3,7,0);
 //    setPoint(true,5,7,1);
@@ -40,6 +46,7 @@ GameGui::GameGui(QWidget *parent) :
 
 GameGui::~GameGui()
 {
+
     delete ui;
 }
 
@@ -78,7 +85,12 @@ bool GameGui::eventFilter(QObject *object, QEvent *e)
     {
         socketManagerW->myGameGui=nullptr;
         socketManagerW->return_friendlist();
-         close();
+        //surrender
+        packetHeader ph;
+        qDebug()<<"surrender";
+        fillPacketHeader(ph,mt::play,sbt::surrender,0);
+        socketManagerW->send_data(&ph,HEADERLEN);
+        close();
     }
     else if(e->type()==QEvent::MouseButtonPress&&object==ui->label_min){
         showMinimized();
@@ -142,6 +154,7 @@ void GameGui::showText(QString str)
 void GameGui::setInitPlane(QString str)
 {
     ui->tableWidget_2->setPlane(str);
+    appendGameLog(ui->lineEdit_uerName->text()+"设置了初始飞机"+str);
 }
 
 void GameGui::setPlane(bool isMyGuessResult, int x1, int y1, int x2, int y2)
@@ -154,6 +167,7 @@ void GameGui::setPlane(bool isMyGuessResult, int x1, int y1, int x2, int y2)
     {
         ui->tableWidget_2->setPlane(x1,y1,x2,y2);
     }
+    appendGameLog(isMyGuessResult,x1,y1,x2,y2,true);
 }
 
 void GameGui::setPoint(bool isMyGuessResult, int x, int y, const uchar status)
@@ -166,14 +180,37 @@ void GameGui::setPoint(bool isMyGuessResult, int x, int y, const uchar status)
     {
         ui->tableWidget_2->setPoint(x,y,status);
     }
+    appendGameLog(isMyGuessResult,x,y,status);
 }
 
 
 void GameGui::on_pushButton_clicked()
 {
-    ui->tableWidget->clearAirCraft(ui->lineEdit->text());
+    if(ui->lineEdit_curStatus->text()!=QString("你的回合")){
+        QMessageBox::warning(nullptr,"warning","不是你的回合");
+        return;
+    }
 
     //发送坐标信息
+    qDebug()<<"发送坐标信息: "<<ui->lineEdit->text();
+    std::string text=ui->lineEdit->text().toStdString();
+    ui->tableWidget->clearAirCraft(ui->lineEdit->text());
+    Packet p;
+    if(text[0]==text[3] && text[1]==text[4]){
+        fillPacketHeader(p.header,mt::play,sbt::unmask,2);
+        p.msg[0]=text[0]-'A';
+        p.msg[1]=text[1]-'0';
+    }else{
+        fillPacketHeader(p.header,mt::play,sbt::locate,4);
+        p.msg[0]=text[0]-'A';
+        p.msg[1]=text[1]-'0';
+        p.msg[2]=text[3]-'A';
+        p.msg[3]=text[4]-'0';
+    }
+    socketManagerW->send_data(&p,p.getLen());
+
+    ui->tableWidget->cur_str="";
+//    appendGameLog(ui->lineEdit->text());
 }
 
 
@@ -190,6 +227,14 @@ void GameGui::setTitle(QString str)
 void GameGui::on_pushButton_sur_clicked()
 {
     //投降按钮
+    socketManagerW->myGameGui=nullptr;
+    socketManagerW->return_friendlist();
+    //surrender
+    packetHeader ph;
+    qDebug()<<"surrender";
+    fillPacketHeader(ph,mt::play,sbt::surrender,0);
+    socketManagerW->send_data(&ph,HEADERLEN);
+    close();
 }
 
 void GameGui::setUserName(QString str)
@@ -210,4 +255,80 @@ void GameGui::setCurOprator(QString str)
 void GameGui::setStatus(QString str)
 {
     ui->lineEdit_curStatus->setText(str);
+}
+
+void GameGui::appendGameLog(QString str)
+{
+    QTime current_time =QTime::currentTime();
+    QString data = current_time.toString()+"\n"+str;
+
+    QListWidgetItem * item = new QListWidgetItem(data);
+    ui->listWidget->addItem(item);
+}
+
+void GameGui::appendGameLog(bool isMyGuessResult, int x,int y,const uchar status)
+{
+    QTime current_time =QTime::currentTime();
+    QString data = current_time.toString()+"\n";
+
+    if(isMyGuessResult)
+    {
+        data += ui->lineEdit_uerName->text();
+    }
+    else
+    {
+        data += ui->lineEdit_opName->text();
+    }
+    data += " 猜测了点";
+    data += QString('A'+x);
+    data += QString('0'+y);
+    data += ", 结果为";
+    if(status == bs::empty)
+    {
+        data += "未命中";
+    }
+    else if(status == bs::head)
+    {
+        data += "命中机头";
+    }
+    else if(status == bs::body)
+    {
+        data += "命中机身";
+    }
+
+    QListWidgetItem * item = new QListWidgetItem(data);
+    ui->listWidget->addItem(item);
+}
+
+void GameGui::appendGameLog(bool isMyGuessResult, int x1, int y1, int x2,int y2, bool isSuccess)
+{
+    QTime current_time =QTime::currentTime();
+    QString data = current_time.toString()+"\n";
+
+    if(isMyGuessResult)
+    {
+        data += ui->lineEdit_uerName->text();
+    }
+    else
+    {
+        data += ui->lineEdit_opName->text();
+    }
+    data += " 猜测了整架飞机(";
+    data += QString('A'+x1);
+    data += QString('0'+y1);
+    data += ",";
+    data += QString('A'+x2);
+    data += QString('0'+y2);
+    data += "), 结果为";
+    if(isSuccess)
+    {
+        data += "命中";
+    }
+    else
+    {
+        data += "未命中";
+    }
+
+    QListWidgetItem * item = new QListWidgetItem(data);
+    ui->listWidget->addItem(item);
 }

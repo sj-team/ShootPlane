@@ -338,7 +338,7 @@ void MyTableWidget::showPlane()
         {
            // qDebug()<<"cur_airdata"<<cur_airdata[i][0]<<cur_airdata[i][1];
            map[cur_airdata[i][0]][cur_airdata[i][1]] += choosed;
-            item(cur_airdata[i][0],cur_airdata[i][1])->setBackgroundColor(airColor[1]);
+            item(cur_airdata[i][0],cur_airdata[i][1])->setBackgroundColor(chooseColor);
         }
     }
     else

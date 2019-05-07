@@ -54,6 +54,13 @@ public:
     //设置当前状态
     void setStatus(QString str);
 
+    //添加游戏日志
+    void appendGameLog(QString str);
+
+    void appendGameLog(bool isMyGuessResult, int x,int y,const uchar status);
+
+    void appendGameLog(bool isMyGuessResult, int x1, int y1, int x2,int y2, bool isSuccess);
+
 private slots:
 
     void on_radioButton_down_toggled(bool checked);

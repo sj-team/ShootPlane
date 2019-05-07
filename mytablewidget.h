@@ -58,6 +58,8 @@ public:
     //设置一个点的显示
     void setPoint(int x,int y,const uchar status);
 
+    QString cur_str;
+
 signals:
     void send(QString str);
 
@@ -94,7 +96,9 @@ private:
     //鼠标悬浮颜色/选中颜色
     QColor hovered = QColor(255, 255, 127);
 
-    QColor airColor[3] = {QColor(225,108,150),QColor(140,194,105),QColor(33,119,184)};
+    QColor airColor[3] = {QColor(225,108,150),QColor(170, 85, 255),QColor(33,119,184)};
+
+    QColor chooseColor =QColor(140,194,105);
 
     QColor myGray[3]={QColor(177,177,177),QColor(222,222,222),QColor(157,157,157)};
 
@@ -108,7 +112,7 @@ private:
 
     //QColor myhover[10];
 
-    QString cur_str;
+
 
 };
 
