@@ -25,14 +25,14 @@ GameGui::GameGui(QWidget *parent) :
 
 
     //此处要修改为creategame中的三个坐标
-    QString tmp_str[3]={"B2-E2","D4-D7","G5-G2"};
-    for(int i=0;i<3;i++)
-        setInitPlane(tmp_str[i]);
+//    QString tmp_str[3]={"B2-E2","D4-D7","G5-G2"};
+//    for(int i=0;i<3;i++)
+//        setInitPlane(tmp_str[i]);
 
-    setPoint(true,3,7,0);
-    setPoint(true,5,7,1);
-    setPoint(true,3,9,2);
-    setPoint(true,4,6,1);
+//    setPoint(true,3,7,0);
+//    setPoint(true,5,7,1);
+//    setPoint(true,3,9,2);
+//    setPoint(true,4,6,1);
 
 
     connect(ui->tableWidget,SIGNAL(send(QString)),this,SLOT(showText(QString)));
@@ -76,8 +76,8 @@ bool GameGui::eventFilter(QObject *object, QEvent *e)
 {
     if(e->type()==QEvent::MouseButtonPress&&object==ui->label_close)
     {
-//        socketManagerW->myGameGui=nullptr;
-//        socketManagerW->return_friendlist();
+        socketManagerW->myGameGui=nullptr;
+        socketManagerW->return_friendlist();
          close();
     }
     else if(e->type()==QEvent::MouseButtonPress&&object==ui->label_min){
@@ -179,11 +179,5 @@ void GameGui::on_pushButton_clicked()
 
 void GameGui::on_tableWidget_itemSelectionChanged()
 {
-    if(!ui->lineEdit->text().isEmpty())
-    {
-        //qDebug()<<ui->lineEdit->text();
-        ui->tableWidget->clearAirCraft(ui->lineEdit->text());
-    }
-
     ui->tableWidget->clearSelection ();
 }
