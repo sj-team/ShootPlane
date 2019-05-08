@@ -46,8 +46,8 @@ private :
 
     SERVER_MYSQL * dataBase;
 
-    XmlLog  mylog ; 
-
+//    XmlLog  mylog ; 
+    newXmlLog * mylog ;     
 
 
     int logGame(const char * msg_type , int index );

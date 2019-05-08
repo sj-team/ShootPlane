@@ -28,7 +28,7 @@ using namespace std ;
 #define MAXDATALEN 2048
 #define MAXNAMELEN 32
 #define MAXPASSWDLEN 32
-
+#define SCOREINIT 100
 #define HEADERLEN 4 
 
 #define SNDALL "/@all"
@@ -192,12 +192,14 @@ struct unmaskPointResult{
 	unsigned char x ;
 	unsigned char y ;
 	unsigned char result ;
+	unsigned char score ;
 };
 
 struct unmaskLocateResult{
 	unsigned char x1 , y1 ;
 	unsigned char x2 , y2 ;
 	unsigned char result ;
+	unsigned char score ;
 };
 
 
@@ -217,12 +219,12 @@ struct Packet{
 		fillPacketHeader(header,mt::beat , 0 , 0);
 	}
 
-	bool isMainType( unsigned char maintp)
+	bool isMainType( unsigned char maintp) const 
 	{
 		return header.mainType == maintp ;
 	}
 
-	bool isSubType (unsigned char subtp)
+	bool isSubType (unsigned char subtp) const 
 	{
 		return header.subType == subtp ;
 	}
@@ -262,6 +264,7 @@ struct ClientInfo{
     int gameId ; 
     int beat_counter ;
 	sockaddr_in sockaddr ; 
+	int score ;
     ChessBoard *my_board , *oppo_board ; 
 
 
@@ -271,6 +274,7 @@ struct ClientInfo{
         cfd = _cfd;
         gameId = -1;
 		beat_counter = 3 ;
+		score = SCOREINIT;
         my_board = oppo_board = NULL ;
         status = cstate::offline ;
         offlinePacks.clear();
