@@ -43,7 +43,8 @@ using namespace std ;
 #define HEADERLEN 4
 
 #define SNDALL "/@all"
-
+#define MAXBEATCTR 5
+#define BEATMSEC 1000
 namespace cstate
 {
     const char gaming = '2';
@@ -63,7 +64,10 @@ namespace cstate
     const unsigned char updateList = 0x22 ;
 
     const unsigned char connect = 0x31 ;
+    const unsigned char play = 0x32;
     const unsigned char resConnect = 0x41 ;
+    const unsigned char resPlay = 0x42 ;
+
 
     const unsigned char askGame = 0x51 ;
     const unsigned char init = 0x52;
@@ -71,7 +75,8 @@ namespace cstate
     const unsigned char resLogin = 0x71;
     const unsigned char resSend = 0X72;
     const unsigned char resConf = 0X81 ;
-    const unsigned char resFileHead =0x73;
+    const unsigned char resFileHead = 0x73;
+    const unsigned char beat = 0xff;
  };
 
 namespace sbt
@@ -116,8 +121,14 @@ namespace sbt
     const unsigned char deny = 0x03 ;
     const unsigned char locate = 0x01 ;
     const unsigned char turn = 0x02 ;
-    const unsigned char wait = 0x03 ;
+    const unsigned char wait = 0x00 ;
 
+    const unsigned char surrender = 0xf0;
+    //const unsigned char surrender = 0x10;
+    const unsigned char unmask = 0x02;
+
+    const unsigned char win = 0x03;
+    const unsigned char lose = 0x04;
 };
 
 
@@ -213,5 +224,34 @@ struct locateData{
     unsigned char p2_x1,p2_y1,p2_x2,p2_y2;
     unsigned char p3_x1,p3_y1,p3_x2,p3_y2;
 };
+
+struct unmaskPointData{
+    unsigned char x ;
+    unsigned char y ;
+};
+
+
+struct unmaskLocateData{
+    unsigned char x1 , y1 ;
+    unsigned char x2 , y2 ;
+};
+
+
+struct unmaskPointResult{
+    unsigned char x ;
+    unsigned char y ;
+    unsigned char result ;
+    unsigned char score;
+
+};
+
+
+struct unmaskLocateResult{
+    unsigned char x1 , y1 ;
+    unsigned char x2 , y2 ;
+    unsigned char result ;
+    unsigned char score;
+};
+
 
 #endif

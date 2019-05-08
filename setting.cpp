@@ -1,5 +1,7 @@
 #include "setting.h"
 #include "ui_setting.h"
+#include "socketmanager.h"
+extern socketManager *socketManagerW;
 
 
 Setting::Setting(QWidget *parent) :
@@ -84,6 +86,10 @@ bool Setting::try_saveSetting()
 
     file.write(byte_array);
     file.close();
+
+    socketManagerW->ip_address = ip;
+    socketManagerW->port = port;
+
 
 
     return true;

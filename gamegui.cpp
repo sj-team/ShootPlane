@@ -29,6 +29,18 @@ GameGui::GameGui(QWidget *parent) :
     ui->listWidget->setProperty("isWrapping", QVariant(true));
     ui->listWidget->setWordWrap(true);
 
+//    ui->listWidget->setStyleSheet("QListWidget{background: rgb(226,225,228);border: 0px;}"
+//    "QScrollBar:vertical{background: rgb(226,225,228);width:8px;}"
+//    "QScrollBar::handle:vertical{background: rgb(186,204,217);border-radius: 4px;border: none;min-height: 20px;}"
+//                                  );
+
+    ui->listWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    setScore(1,100);
+    setScore(0,100);
+
+
     setUserName(socketManagerW->name);
     setOpName(socketManagerW->op_name);
     setTitle(socketManagerW->game_name);
@@ -98,6 +110,10 @@ bool GameGui::eventFilter(QObject *object, QEvent *e)
     else if(e->type()==QEvent::MouseButtonPress&&object==ui->label_min){
         showMinimized();
         qDebug()<<"最小化";
+    }
+    if(e->type()==QEvent::MouseButtonPress)
+    {
+        ui->tableWidget->clearAirCraft(ui->lineEdit->text());
     }
 
     return false;
@@ -264,6 +280,7 @@ void GameGui::appendGameLog(QString str)
 
     QListWidgetItem *item = new QListWidgetItem(data);
     ui->listWidget->addItem(item);
+    ui->listWidget->scrollToBottom();
 }
 
 void GameGui::appendGameLog(bool isMyGuessResult, int x, int y, const uchar status)
@@ -298,6 +315,7 @@ void GameGui::appendGameLog(bool isMyGuessResult, int x, int y, const uchar stat
 
     QListWidgetItem *item = new QListWidgetItem(data);
     ui->listWidget->addItem(item);
+    ui->listWidget->scrollToBottom();
 }
 
 void GameGui::appendGameLog(bool isMyGuessResult, int x1, int y1, int x2, int y2, bool isSuccess)
@@ -331,4 +349,14 @@ void GameGui::appendGameLog(bool isMyGuessResult, int x1, int y1, int x2, int y2
 
     QListWidgetItem *item = new QListWidgetItem(data);
     ui->listWidget->addItem(item);
+    ui->listWidget->scrollToBottom();
+}
+
+
+void GameGui::setScore(bool isMyGuessResult, unsigned char score)
+{
+    if(isMyGuessResult)
+        ui->lineEdit_userSrcore->setText(QString::number(score));
+    else
+        ui->lineEdit_opScore->setText(QString::number(score));
 }

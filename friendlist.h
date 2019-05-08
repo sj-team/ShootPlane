@@ -33,6 +33,11 @@ public:
     };
     QList<friendData> friendDataList;
 
+    int online_time;
+    int online_num;
+    int gaming_num;
+    int offline_num;
+
     //鼠标按下事件
     void mousePressEvent(QMouseEvent *event);
     //鼠标释放事件
@@ -44,10 +49,11 @@ public:
 
     void addFriend(QString name,int status);
 
+    void updInfo();
+
+
     //设置用户名
     void setUserName(QString str);
-    //设置上次登录时间
-    void setLastLoginTime(QString str);
     //设置当前在线时间
     void setCurrentOnlineTime(QString str);
     //设置当前状态
@@ -56,7 +62,6 @@ public:
     void setIpAddress(QString str);
     //设置端口
     void setPort(QString str);
-
 private:
     Ui::FriendList *ui;
 

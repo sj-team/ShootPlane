@@ -20,6 +20,12 @@ FriendList::FriendList(QWidget *parent) :
     setAttribute(Qt::WA_TranslucentBackground);
     setAttribute(Qt::WA_DeleteOnClose,true);
 
+    online_time=0;
+
+    online_num=0;
+    offline_num=0;
+    gaming_num=0;
+
     ui->label_close->installEventFilter(this);
     ui->label_min->installEventFilter(this);
     ui->listWidget->setDragDropMode(QListWidget::InternalMove);
@@ -78,6 +84,8 @@ void FriendList::mouseMoveEvent(QMouseEvent *event)
 
 bool FriendList::eventFilter(QObject *object, QEvent *e)
 {
+    if(this->isEnabled()==false)
+        return false;
     if(e->type()==QEvent::MouseButtonPress&&object==ui->label_close)
     {
         socketManagerW->myFriendList=nullptr;
@@ -125,6 +133,8 @@ void FriendList::addFriend(QString name, int status)
     friendDataList.insert(pos,tempFirendData);
     ui->listWidget->insertItem(pos,item);
 
+    updInfo();
+
 }
 void FriendList::testend(){
     if(socketManagerW->startRequestWaiting){
@@ -134,6 +144,7 @@ void FriendList::testend(){
     }
 }
 void FriendList::solve_recv_newgame(QString name){
+    socketManagerW->op_name=name;
    socketManagerW->recvMessage =new QMessageBox("new game",QString(name)+" 向你发起对战，是否接受？",QMessageBox::Icon::Question,QMessageBox::StandardButton::Yes,QMessageBox::StandardButton::No,QMessageBox::StandardButton::NoButton);
     //myFriendList->setEnabled(false);
     int res=socketManagerW->recvMessage->exec();
@@ -172,6 +183,7 @@ void FriendList::on_listWidget_itemDoubleClicked(QListWidgetItem* item)
     }
     qDebug()<<"send msg to usr"<<item->text();
     Packet p;
+    socketManagerW->op_name=item->text();
     std::string temp_str=item->text().toStdString();
     strcpy(p.msg,temp_str.c_str());
     fillPacketHeader(p.header,mt::connect,sbt::request,MAXNAMELEN);
@@ -186,7 +198,7 @@ void FriendList::on_listWidget_itemDoubleClicked(QListWidgetItem* item)
     }else{
         if(res==QMessageBox::Cancel){
             qDebug()<<"cancelled";
-            fillPacketHeader(p.header,mt::resConnect,sbt::deny,MAXNAMELEN);
+            fillPacketHeader(p.header,mt::connect,sbt::deny,MAXNAMELEN);
             strcpy(p.msg,temp_str.c_str());
             socketManagerW->send_data(&p,MAXNAMELEN+HEADERLEN);
         }
@@ -195,14 +207,28 @@ void FriendList::on_listWidget_itemDoubleClicked(QListWidgetItem* item)
 
 }
 
+void FriendList::updInfo()
+{
+    online_num=0;
+    gaming_num=0;
+    offline_num=0;
+
+    for(auto i:friendDataList)
+    {
+        if(i.status == i.stat_offline)
+            offline_num++;
+        else if(i.status == i.stat_gaming)
+            gaming_num++;
+        else if(i.status ==i.stat_online)
+            online_num++;
+    }
+    QString data = QString::number(online_num)+"/"+QString::number(gaming_num)+"/"+QString::number(offline_num);
+    ui->lineEdit_7->setText(data);
+}
+
 void FriendList::setUserName(QString str)
 {
     ui->lineEdit_userName->setText(str);
-}
-
-void FriendList::setLastLoginTime(QString str)
-{
-    ui->lineEdit_lastLoginTime->setText(str);
 }
 
 void FriendList::setCurrentOnlineTime(QString str)
@@ -224,3 +250,4 @@ void FriendList::setStatus(QString str)
 {
     ui->lineEdit_status->setText(str);
 }
+

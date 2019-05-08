@@ -30,28 +30,58 @@ socketManager::socketManager(QObject *parent):QObject(parent){
     myGameGui=nullptr;
     startRequestWaiting=new QMessageBox(QMessageBox::Icon::Information,"waiting","等待对方回应...",QMessageBox::StandardButton::Cancel);
     hintMessage_s=nullptr;
+    beatTimeRecv=0;
+    beatTimeSend=nullptr;
+
+    QFile file("./setting.json");
+    if(file.open(QIODevice::ReadOnly))
+    {
+        QByteArray allData = file.readAll();
+        file.close();
+
+        QJsonParseError json_error;
+        QJsonDocument jsonDoc(QJsonDocument::fromJson(allData, &json_error));
+
+        if(json_error.error != QJsonParseError::NoError)
+        {
+            qDebug() << "json error!";
+        }
+        else
+        {
+            QJsonObject rootObj = jsonDoc.object();
+            QStringList keys = rootObj.keys();
+            qDebug()<<"load ip_address = "<<rootObj["ip"].toString();
+            qDebug()<<"load port = "<<rootObj["port"].toString();
+            ip_address = rootObj["ip"].toString();
+            port = rootObj["port"].toString();
+        }
+    }
+    else {
+        qDebug() << "could't open projects json";
+    }
+
     connect(this, SIGNAL(signal_surrender()), this, SLOT(slot_surrender()),Qt::QueuedConnection);
     connect(this, SIGNAL(signal_win()), this, SLOT(slot_win()),Qt::QueuedConnection);
     connect(this, SIGNAL(signal_lose()), this, SLOT(slot_lose()),Qt::QueuedConnection);
 }
 socketManager::~socketManager()
 {
-    if(topLogin!=nullptr){
+    if(topLogin!=nullptr)
         delete topLogin;
-    }
-    if(myFriendList!=nullptr){
+    if(myFriendList!=nullptr)
         delete myFriendList;
-    }
-    if(myChangePwd!=nullptr){
+    if(myChangePwd!=nullptr)
         delete myChangePwd;
-    }
-    if(startRequestWaiting!=nullptr){
+    if(startRequestWaiting!=nullptr)
         delete startRequestWaiting;
-    }
-    if(hintMessage_s!=nullptr){
+    if(hintMessage_s!=nullptr)
         delete hintMessage_s;
-    }
-    clientSocket->disconnect();
+    if(myCreateGame!=nullptr)
+        delete myCreateGame;
+    if(myGameGui!=nullptr)
+        delete myGameGui;
+    if(beatTimeSend!=nullptr)
+        delete beatTimeSend;
     delete clientSocket;
 }
 void socketManager::chgpasswd(){
@@ -62,8 +92,41 @@ void socketManager::chgpasswd(){
     myChangePwd->show();
 }
 void socketManager::closeall(){
-    //topLogin->hide();
+    if(myFriendList!=nullptr){
+        delete myFriendList;
+        myFriendList=nullptr;
+    }
+    if(myChangePwd!=nullptr){
+        delete myChangePwd;
+        myChangePwd=nullptr;
+    }
+    if(hintMessage_s!=nullptr){
+        delete hintMessage_s;
+        hintMessage_s=nullptr;
+    }
+    if(myCreateGame!=nullptr){
+        delete myCreateGame;
+        myCreateGame=nullptr;
+    }
+    if(myGameGui!=nullptr){
+        delete myGameGui;
+        myGameGui=nullptr;
+    }
 
+}
+void socketManager::slot_beat(){
+    packetHeader ph;
+    fillPacketHeader(ph,mt::beat,sbt::myDefault,0);
+    send_data(&ph,sizeof(ph));
+    beatTimeRecv--;
+    if(beatTimeRecv<=0){
+        clientSocket->close();
+        //beatTimeSend->stop();
+    }
+    if(myFriendList)
+    {
+        myFriendList->setCurrentOnlineTime(QString::number(myFriendList->online_time++));
+    }
 }
 void socketManager::login_success(){
     if(myChangePwd!=nullptr){
@@ -75,15 +138,30 @@ void socketManager::login_success(){
     name=topLogin->getUserName();
     topLogin->close();
     myFriendList = new FriendList;
+    myFriendList->setUserName(name);
+    myFriendList->setIpAddress(ip_address);
+    myFriendList->setPort(port);
+    myFriendList->setStatus("我在线上");
     myFriendList->show();
 }
 void socketManager::send_data(void *data, int len){
     Packet* mp=(Packet*)data;
-    qDebug()<<int(mp->header.mainType)<<"   "<<int(mp->header.subType)<<" "<<(mp->msg)<<" "<<(mp->msg+32);
+    if(mp->header.mainType!=mt::beat)qDebug()<<int(mp->header.mainType)<<"   "<<int(mp->header.subType)<<" "<<(mp->msg)<<" "<<(mp->msg+32);
     if(!clientSocket->isOpen()){
-        clientSocket->connectToHost(QHostAddress("10.60.102.252"), 20202);
+        beatTimeRecv=MAXBEATCTR;
+        clientSocket->connectToHost(QHostAddress(ip_address), port.toInt(nullptr,10));
+        bool state=clientSocket->waitForConnected(1000);
+        if(!state){
+            if(!myFriendList)
+                QMessageBox::warning(nullptr,"warning","连接服务器失败");
+            clientSocket->close();
+            return;
+        }
         connect(clientSocket, SIGNAL(readyRead()), this, SLOT(ClientRecvData()));
         connect(clientSocket, SIGNAL(disconnected()), this, SLOT(ClientDisconnected()));
+        beatTimeSend=new QTimer;
+        connect(beatTimeSend, SIGNAL(timeout()), this, SLOT(slot_beat()));
+        beatTimeSend->start(BEATMSEC);
     }
      clientSocket->write((char*)data,len);
 }
@@ -167,10 +245,10 @@ void socketManager::solve_start_locate(){
     myFriendList->setEnabled(false);
     if(myCreateGame==nullptr){
         myCreateGame=new CreateGame;
-        game_name=name + " VS " + op_name;
-        myCreateGame->setTitle(game_name);
-        myCreateGame->show();
     }
+    game_name=name + " VS " + op_name;
+    myCreateGame->setTitle(game_name);
+    myCreateGame->show();
 
 }
 void socketManager::return_friendlist(){//返回列表界面
@@ -178,6 +256,7 @@ void socketManager::return_friendlist(){//返回列表界面
 }
 void socketManager::solve_play_locate(Packet *p){
     unmaskLocateResult *resPtr=(unmaskLocateResult *)p->msg;
+    myGameGui->setScore(0,resPtr->score);
     if(resPtr->result){
         myGameGui->setPlane(0,resPtr->x1,resPtr->y1,resPtr->x2,resPtr->y2);
     }
@@ -187,6 +266,8 @@ void socketManager::solve_play_locate(Packet *p){
 }
 void socketManager::solve_resPlay_locate(Packet *p){
     unmaskLocateResult *resPtr=(unmaskLocateResult *)p->msg;
+
+    myGameGui->setScore(1,resPtr->score);
     if(resPtr->result){
         myGameGui->setPlane(1,resPtr->x1,resPtr->y1,resPtr->x2,resPtr->y2);
     }
@@ -196,14 +277,27 @@ void socketManager::solve_resPlay_locate(Packet *p){
 }
 void socketManager::solve_play_unmask(Packet *p){
     unmaskPointResult *resPtr=(unmaskPointResult *)p->msg;
+    myGameGui->setScore(0,resPtr->score);
     myGameGui->setPoint(0,resPtr->x,resPtr->y,resPtr->result);
 }
 void socketManager::solve_resPlay_unmask(Packet *p){
     unmaskPointResult *resPtr=(unmaskPointResult *)p->msg;
+    myGameGui->setScore(1,resPtr->score);
     myGameGui->setPoint(1,resPtr->x,resPtr->y,resPtr->result);
 }
+void socketManager::solve_repeat_off(){
+    qDebug()<<"repeatoff";
+    QMessageBox::warning(nullptr,"warning","同一个账号重复登录，自动下线");
+    closeall();
+    topLogin->show();
+}
+
+void socketManager::solve_beat(){
+    beatTimeRecv=MAXBEATCTR;
+}
+
 void socketManager::solve_packet(Packet *myPacket){
-    qDebug()<<int(myPacket->header.mainType)<<"   "<<int(myPacket->header.subType);
+    if(myPacket->header.mainType!=mt::beat)qDebug()<<int(myPacket->header.mainType)<<"   "<<int(myPacket->header.subType);
     QMessageBox *hintMessage=nullptr;
     switch(myPacket->header.mainType){
         case mt::resLogin:{ //server回应登录
@@ -214,15 +308,18 @@ void socketManager::solve_packet(Packet *myPacket){
                     chgpasswd();
                     break;
                 case sbt::pwderror:
+                    qDebug()<<"password error";
                     hintMessage= new QMessageBox(QMessageBox::Icon::Warning,"warning","密码错误");
                     break;
                 case sbt::repeaton:
                     hintMessage= new QMessageBox(QMessageBox::Icon::Warning,"warning","重复上线");
-                    ;
+                    login_success();
+                    break;
                 case sbt::success:
                     login_success();
                     break;
                 case sbt::repeatoff:
+                    solve_repeat_off();
                     break;
                 default:
                     break;
@@ -302,9 +399,11 @@ void socketManager::solve_packet(Packet *myPacket){
                     break;
                 case sbt::turn:
                     myGameGui->setStatus("你的回合");
+                    myGameGui->setCurOprator(name);
                     break;
                 case sbt::wait:
                     myGameGui->setStatus("对方回合");
+                    myGameGui->setCurOprator(op_name);
                     break;
                 default:
                     break;
@@ -350,6 +449,9 @@ void socketManager::solve_packet(Packet *myPacket){
             }
             break;
         }
+        case mt::beat:
+            solve_beat();
+            break;
         default:
             break;
     }
@@ -389,8 +491,22 @@ void socketManager::ClientRecvData(){
 
 }
 void socketManager::ClientDisconnected(){
-    if(clientSocket->isOpen())
+    qDebug()<<"disconnect";
+    if(beatTimeSend){
+        delete beatTimeSend;
+        beatTimeSend=nullptr;
+    }
+    if(clientSocket->isOpen()){
         clientSocket->close();
+    }
+    if(myFriendList){
+        myFriendList->setStatus("离线");
+        QMessageBox::warning(nullptr,"warning","与服务器断开连接！");
+
+        closeall();
+        topLogin->show();
+    }
+
 
 }
 

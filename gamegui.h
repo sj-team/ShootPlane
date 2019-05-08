@@ -61,6 +61,8 @@ public:
 
     void appendGameLog(bool isMyGuessResult, int x1, int y1, int x2,int y2, bool isSuccess);
 
+    void setScore(bool isMyGuessResult, unsigned char score);
+
 private slots:
 
     void on_radioButton_down_toggled(bool checked);
