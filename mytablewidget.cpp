@@ -317,6 +317,10 @@ void MyTableWidget::clearAirCraft(QString str)
     }
     else
     {
+        qDebug()<<"a"<<num<<str;
+        if(num <1)
+            return;
+        qDebug()<<"b"<<num<<str;
         num--;
 
         for(int i=0;i<10;i++)
@@ -343,7 +347,11 @@ void MyTableWidget::showPlane()
     }
     else
     {
+
+        if(num>2)
+            return;
         num++;
+
         for(int i=0;i<10;i++)
         {
            // qDebug()<<"cur_airdata"<<cur_airdata[i][0]<<cur_airdata[i][1];
@@ -415,7 +423,7 @@ void MyTableWidget::setPlane(int x1,int y1,int x2,int y2)
             getAircraft(x1,y1,orient(Down));
     }
 
-//    showPlane();
+    //showPlane();
 
     num++;
     for(int i=0;i<10;i++)

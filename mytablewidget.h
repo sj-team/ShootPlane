@@ -60,6 +60,22 @@ public:
 
     QString cur_str;
 
+    //鼠标悬浮颜色/选中颜色
+    QColor hovered = QColor(255, 255, 127);
+
+    QColor airColor[3] = {QColor(225,108,150),QColor(170, 85, 255),QColor(33,119,184)};
+
+    QColor chooseColor = QColor(140,194,105);
+
+    QColor myGray[3]={QColor(177,177,177),QColor(222,222,222),QColor(157,157,157)};
+
+    //背景颜色
+    QColor bg = QColor(255,255,255);
+
+    //猜测后返回的颜色，随机写的，要改
+    QColor miss = QColor(0,0,0);
+
+
 signals:
     void send(QString str);
 
@@ -93,22 +109,6 @@ private:
     //之前飞机坐标
     int pre_airdata[10][2];
 
-    //鼠标悬浮颜色/选中颜色
-    QColor hovered = QColor(255, 255, 127);
-
-    QColor airColor[3] = {QColor(225,108,150),QColor(170, 85, 255),QColor(33,119,184)};
-
-    QColor chooseColor =QColor(140,194,105);
-
-    QColor myGray[3]={QColor(177,177,177),QColor(222,222,222),QColor(157,157,157)};
-
-    //背景颜色
-    QColor bg = QColor(255,255,255);
-
-    //猜测后返回的颜色，随机写的，要改
-    QColor miss = QColor(0,0,0);
-    QColor head = QColor(54,203,87);
-    QColor body = QColor(77,99,123);
 
     //QColor myhover[10];
 
