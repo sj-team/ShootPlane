@@ -177,17 +177,19 @@ struct locateData {
 };
 
 
-
+//client向server发，猜点信息
 struct unmaskPointData{
 	unsigned char x ;
 	unsigned char y ;
 };
 
+//client向server发，猜飞机信息
 struct unmaskLocateData{
 	unsigned char x1 , y1 ;
 	unsigned char x2 , y2 ;
 };
 
+//server向client发，猜点反馈
 struct unmaskPointResult{
 	unsigned char x ;
 	unsigned char y ;
@@ -195,6 +197,7 @@ struct unmaskPointResult{
 	unsigned char score ;
 };
 
+//server向client发，猜飞机反馈
 struct unmaskLocateResult{
 	unsigned char x1 , y1 ;
 	unsigned char x2 , y2 ;
