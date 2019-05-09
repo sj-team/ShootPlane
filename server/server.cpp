@@ -321,10 +321,12 @@ void Server::user_online ( int cfdindex )
             serverSend(cfd , packet);
             friMsg = "";
         }
-        if(p->cfd  <0 )
-            friMsg +=cstate::offline;
-        else
-            friMsg +=cstate::online;
+        // if(p->cfd  <0 )
+        //     friMsg +=cstate::offline;
+        // else 
+        //     friMsg +=cstate::online;
+
+        friMsg += p->status;
 
         friMsg +=p->name;
         friMsg +='|';
