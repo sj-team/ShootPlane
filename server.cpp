@@ -463,7 +463,7 @@ void Server::solveLogin(int index )
             cout <<"not exit user name  "<<endl ;
             sndResponse(cfd , mt::resLogin, sbt::idNotExit);
             //mylog._writeLogin( "username-not-exsit", i->sockaddr , i->username.c_str());
-            mylog->writeLogin(i->sockaddr , i->username.c_str(),"username-not-exsit");
+            mylog->writeLogin(i->sockaddr , datap->username,"username-not-exsit");
             removeLogin(i);
             return ;
         }
@@ -474,7 +474,7 @@ void Server::solveLogin(int index )
             cout <<"not correct passwd  "<<endl ;
             sndResponse(cfd , mt::resLogin,sbt::pwderror);
             //mylog._writeLogin( "passwd-uncorrect" , i->sockaddr , i->username.c_str());
-            mylog->writeLogin(i->sockaddr,i->username.c_str(),"passwd-uncorrect");
+            mylog->writeLogin(i->sockaddr,datap->username,"passwd-uncorrect");
             removeLogin(i);
             return ;
         }
@@ -497,7 +497,7 @@ void Server::solveLogin(int index )
             else if ( clientList[i->index].cfd >0)
             {
                 // debug
-                cout << i->username <<"ÖØ¸´µÇÂ¼"<<endl;
+                //cout << i->username <<"ÖØ¸´µÇÂ¼"<<endl;
                 //mylog._writeLogin( "login-repeat-off" , clientList[i->index].sockaddr , i->username.c_str());
                 mylog ->writeLogin(clientList[i->index].sockaddr , i->username.c_str() , "login-repeat-off");
                 sndResponse(clientList[i->index].cfd , mt::resLogin , sbt::repeatoff);
@@ -535,7 +535,7 @@ void Server::solveLogin(int index )
         else 
         {
             //mylog._writeLogin( "change-passwd-ok" , i->sockaddr , i->username.c_str());
-            mylog->writeLogin(i->sockaddr,i->username.c_str(),"change-passwd-error");
+            mylog->writeLogin(i->sockaddr,i->username.c_str(),"change-passwd-ok");
             sndResponse(cfd , mt::resLogin , sbt::success );
             i->state = sbt::success;
         }
