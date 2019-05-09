@@ -75,6 +75,8 @@ public:
     //猜测后返回的颜色，随机写的，要改
     QColor miss = QColor(0,0,0);
 
+    int graynum;
+
 
 signals:
     void send(QString str);

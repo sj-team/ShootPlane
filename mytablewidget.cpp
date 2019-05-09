@@ -26,6 +26,7 @@ MyTableWidget::MyTableWidget(QWidget *parent) : QTableWidget(parent)
     }
 
     num = 0;
+    graynum=0;
     for(int i=0;i<10;i++)
         for(int j=0;j<10;j++)
         {
@@ -370,7 +371,7 @@ void MyTableWidget::showPlane()
 
 void MyTableWidget::setPlane(QString str)
 {
-    static int graynum = 0;
+    //static int graynum = 0;
     const char *p=str.toLocal8Bit().data();
 
     int x1 = p[0]-'A';

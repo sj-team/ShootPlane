@@ -6,7 +6,7 @@
 
 QT       += core gui
 QT      += network
-QMAKE_CXXFLAGS += -l ws2_32
+LIBS += -lws2_32
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = Aircraft_client

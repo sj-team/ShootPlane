@@ -13,10 +13,10 @@
 
 
 #ifdef  WIN32
-//#include <winsock2.h>
-//#pragma comment(lib, "ws2_32")
-unsigned short htons(unsigned short data);
-unsigned short ntohs(unsigned short data);
+#include <winsock2.h>
+#pragma comment(lib, "ws2_32")
+//unsigned short htons(unsigned short data);
+//unsigned short ntohs(unsigned short data);
 #else
 #include <ctype.h>
 #include <fcntl.h>

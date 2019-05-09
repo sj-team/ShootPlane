@@ -1,8 +1,9 @@
 #include "socketmanager.h"
 #include "common/mypacket.h"
 #ifdef  WIN32
-//#include <winsock2.h>
-//#pragma comment(lib, "ws2_32")
+#include <winsock2.h>
+/*
+#pragma comment(lib, "ws2_32")
 unsigned short htons(unsigned short data){
    unsigned short ans;
    char *p=(char*)(&data);
@@ -18,7 +19,7 @@ unsigned short ntohs(unsigned short data){
    q[0]=p[1];
    q[1]=p[0];
    return ans;
-}
+}*/
 #endif
 
 socketManager::socketManager(QObject *parent):QObject(parent){
