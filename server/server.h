@@ -13,10 +13,12 @@
 
 #define MAX_CONNECT 1000
 #define MAX_LISTEN 1000
+#define BEATMAXNUM 3 
 const bool flag_block = true;
 
-using namespace std ;
 
+
+using namespace std ;
 
 
 class Server 
@@ -28,9 +30,13 @@ private :
 
     int senderIndex ;
 
+    const Packet beatPacket ;
+
     vector<ClientInfo> clientList;
 
     vector<loginAction> loginList;
+
+    vector<gameInfo> gameList ;
 
     // name 到 clientList 下标的map
     map<string, int> nameIndex;
@@ -40,8 +46,11 @@ private :
 
     SERVER_MYSQL * dataBase;
 
-    XmlLog  mylog ; 
+//    XmlLog  mylog ; 
+    newXmlLog * mylog ;     
 
+
+    int logGame(const char * msg_type , int index );
 
     bool newConnect ();
 
@@ -49,7 +58,7 @@ private :
 
     void removeLogin (vector<loginAction>::iterator i);
 
-    void tell_clinet_onoffline (int index ,bool isOnline);
+    void tell_client_update (int index );
 
     void close_cfd(int cfd );
 
@@ -75,7 +84,7 @@ private :
 
     int alterFileDataPack(Packet &desPack, Packet &srcPack, const char *srcId);
 
-    void solveMsg(int index );
+    void solveMsg(const int index );
 
     int sndOneMsg(int index ,const char * rcvName , const Packet & packet );
 
@@ -84,6 +93,15 @@ private :
     void user_offline( int index );
 
     void user_leave( int index );
+
+    void removeGame( int gid ,int id = -1 , bool surrender = false);
+
+    //void endGame( int gid , bool turn);
+
+    // tell user wait or play
+    void gameTurn(int gid );
+
+    void shootBeat();
 
   public:
 

@@ -28,7 +28,7 @@ using namespace std ;
 #define MAXDATALEN 2048
 #define MAXNAMELEN 32
 #define MAXPASSWDLEN 32
-
+#define SCOREINIT 100
 #define HEADERLEN 4 
 
 #define SNDALL "/@all"
@@ -37,10 +37,13 @@ namespace cstate
 {
 	const char online = '1' ;
 	const char offline = '0' ;
+	const char playing = '2';
+
 };
 
  namespace mt
  {
+	const unsigned char beat = 0xff;
 	 // client  send 
 	const unsigned char login = 0x11;
 	const unsigned char sndFileHead = 0x12 ;
@@ -54,6 +57,15 @@ namespace cstate
 	const unsigned char resSend = 0X72;
 	const unsigned char resConf = 0X81 ;
 	const unsigned char resFileHead =0x73;
+ 
+	const unsigned char connect = 0x31;
+	const unsigned char resConnect = 0x41;
+	const unsigned char askGame = 0x51;
+	const unsigned char init = 0x52 ;
+
+	const unsigned char play = 0x32 ;
+	const unsigned char resPlay = 0x42;
+
  };
 
 namespace sbt
@@ -77,6 +89,7 @@ namespace sbt
 
 	const unsigned char idNotExit = 0xfe;
 	const unsigned char idOffline = 0xfd;
+	const unsigned char idPlaying = 0xfc;
 
 	const unsigned char winTheme = 0x01;
 	const unsigned char friList = 0x02 ;
@@ -86,9 +99,29 @@ namespace sbt
 	const unsigned char hisMsg = 0x06 ;
 
 	const unsigned char tellOnline = 0x01 ;
-	const unsigned char tellOffline = 0x02 ;
+	const unsigned char tellOffline = 0x00 ;
+	const unsigned char tellPlaying = 0x02 ;
+	const unsigned char tellEnd = 0x03 ;
+
+
 	const unsigned char offlineSnd = 0x07 ;
 	const unsigned char packetok = 0x08 ;
+
+	// mt::connect || mt::resConnect || mt::askInit
+ 	//const unsigned char request 
+	const unsigned char accept = 0x02 ;
+	const unsigned char deny = 0x03 ;
+	const unsigned char locate = 0x01;
+	const unsigned char wait = 0x00 ;
+	const unsigned char turn = 0x02 ;
+	const unsigned char relocate = 0x10 ;
+	
+
+	const unsigned char unmask = 0x02;
+	const unsigned char win = 0x03 ;
+	const unsigned char lose = 0x04;
+	const unsigned char surrender = 0xf0;
+
 
 };
 
@@ -99,6 +132,7 @@ struct packetHeader{
 	unsigned char mainType ;
 	unsigned char subType ;
 	unsigned short length;
+
 };
 
 struct TxtData
@@ -135,6 +169,40 @@ struct changePwdData {
 	char newPasswd [MAXPASSWDLEN];
 };
 
+// locate 
+struct locateData {
+	unsigned char p1_x1 , p1_y1 , p1_x2 , p1_y2 ;
+	unsigned char p2_x1 , p2_y1 , p2_x2 , p2_y2 ;
+	unsigned char p3_x1 , p3_y1 , p3_x2 , p3_y2 ;
+};
+
+
+
+struct unmaskPointData{
+	unsigned char x ;
+	unsigned char y ;
+};
+
+struct unmaskLocateData{
+	unsigned char x1 , y1 ;
+	unsigned char x2 , y2 ;
+};
+
+struct unmaskPointResult{
+	unsigned char x ;
+	unsigned char y ;
+	unsigned char result ;
+	unsigned char score ;
+};
+
+struct unmaskLocateResult{
+	unsigned char x1 , y1 ;
+	unsigned char x2 , y2 ;
+	unsigned char result ;
+	unsigned char score ;
+};
+
+
 
 
 int fillPacketHeader(packetHeader & header , unsigned char mainType , unsigned char resType , unsigned short msgLen);
@@ -144,12 +212,19 @@ struct Packet{
 	packetHeader header ;
 	char msg[MAXDATALEN+1024];
 
-	bool isMainType( unsigned char maintp)
+	Packet (){
+
+	}
+	Packet (unsigned char _mt , unsigned char _sbt , unsigned short len){
+		fillPacketHeader(header,mt::beat , 0 , 0);
+	}
+
+	bool isMainType( unsigned char maintp) const 
 	{
 		return header.mainType == maintp ;
 	}
 
-	bool isSubType (unsigned char subtp)
+	bool isSubType (unsigned char subtp) const 
 	{
 		return header.subType == subtp ;
 	}
@@ -187,7 +262,9 @@ struct ClientInfo{
     string name;
     unsigned char status ;
     int gameId ; 
-    sockaddr_in sockaddr ; 
+    int beat_counter ;
+	sockaddr_in sockaddr ; 
+	int score ;
     ChessBoard *my_board , *oppo_board ; 
 
 
@@ -196,6 +273,8 @@ struct ClientInfo{
         name = _name ;
         cfd = _cfd;
         gameId = -1;
+		beat_counter = 3 ;
+		score = SCOREINIT;
         my_board = oppo_board = NULL ;
         status = cstate::offline ;
         offlinePacks.clear();
@@ -208,6 +287,7 @@ struct loginAction
 {
     int cfd ; 
     int index ; 
+	int beat_counter ; 
     string username ;
     sockaddr_in sockaddr ; 
     unsigned char state ;
@@ -217,26 +297,28 @@ struct loginAction
         cfd = _cfd;
         sockaddr = _sockaddr ;
         state = sbt::request;
-
+		beat_counter = 3 ;
     }
 };
 
 struct gameInfo {
     
-    int gameId ; 
-    bool ready ; 
+//    int gameId ; 
+    // 表示双方已经进入正常游戏界面
+	// 已经完成了对局的建立
+	bool ready ; 
 
-    // turn == (id == index1)
+	// turn is true , then index1's turn 
     bool turn ; 
     // 1 为挑战者  2 为被挑战者 为clientinfo的下标
     int index1 , index2 ;
 
     ChessBoard *board1 , *board2 ;
 
-    gameInfo(int id1 , int id2 , int gid){
+    gameInfo(int id1 , int id2 ){
         index1 = id1 ; 
         index2 = id2 ;
-        gameId = gid ;
+ //       gameId = gid ;
         ready = false ;
         turn = false;
         board1 = board2 = NULL ;

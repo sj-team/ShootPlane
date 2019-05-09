@@ -15,6 +15,9 @@ fd_set getSet(int cfd)
 
 int socketSend (int cfd , const Packet & packet)
 {
+	if (cfd <0)
+		return 0;
+
 	int msgLen = getPacketLen(packet);
 	int totalLen = 0;
 	int sndLen ;
@@ -36,7 +39,7 @@ int socketSend (int cfd , const Packet & packet)
 				cerr<<"select error "<<endl;
 				return -1 ;
 			case 0 :
-				cerr<<"timeOut error"<<endl;
+				cerr<<"send timeOut error"<<endl;
 				return -1;
 			default :
 				sndLen = send(cfd, buff + totalLen, msgLen - totalLen, 0);
@@ -80,7 +83,10 @@ int socketRecv(int cfd , Packet & packet)
 				cerr << "select error " << endl;
 				return -1;
 			case 0:
-				cerr << "timeOut error" << endl;
+				cerr << "recv timeOut error , recv_cur is "<<totalLen << endl;
+				if (totalLen >=HEADERLEN){
+					cout << (int)packet.header.mainType<<' '<<(int)packet.header.subType<<' '<<getPacketLen(packet)<<endl;
+				}
 				return -1;
 			default:
 				recvNum = recv(cfd, buff + totalLen, msgLen - totalLen, 0);
