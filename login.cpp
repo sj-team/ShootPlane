@@ -29,7 +29,8 @@ Login::Login(QWidget *parent) :
     QPalette palette = this->palette();
     QPixmap pix;
     //qDebug()<<"begin"<<QDir::currentPath()+"/img/login_bg.jpg";
-    if(pix.load(QDir::currentPath()+"/img/login_bg.jpg"))
+    //if(pix.load(QDir::currentPath()+"/img/login_bg.jpg"))
+    if(pix.load("../client/img/login_bg.jpg"))
     {
         palette.setBrush(QPalette::Window,
                          QBrush(pix.scaled( // 缩放背景图.
